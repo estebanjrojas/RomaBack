@@ -1,0 +1,25 @@
+{
+  "name": "asispre_rest",
+  "version": "1.0.0",
+  "description": "Servicio Rest Proyecto Final",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Raul Martinez",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "*",
+    "consolidate": "*",
+    "cors": "^2.8.4",
+    "dust": "*",
+    "dustjs-helpers": "*",
+    "dustjs-linkedin": "*",
+    "express": "*",
+    "jsonwebtoken": "^8.4.0",
+    "method-override": "^3.0.0",
+    "nodemon": "^1.18.4",
+    "pg": "*"
+  }
+}
