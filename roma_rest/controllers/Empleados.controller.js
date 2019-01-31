@@ -1,8 +1,106 @@
 //Conexión a Postgres
 const configuracion = require("../utillities/config");
-const validacion_token = require("../utillities/jwtValidaciones");
 var { Pool } = require('pg');
 const connectionString = configuracion.bd;
+
+
+exports.getEmpleadosTodos = function (req, res) {
+
+    try{
+        var respuesta = JSON.stringify({"mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        try{
+            (async ()=>{
+                respuesta = await pool.query(`             
+            SELECT em.id as empleados_id
+            , em.personas_id
+            , em.legajo
+            , em.fecha_ingreso
+            , em.descripcion
+            , gdt(3, em.oficina) as oficina
+            , ep.id as empresas_id
+            , ep.razon_social as empresa_razon_social
+            , ep.nombre_fantasia as empresa_nombre_fantasia
+            , ps.*
+            FROM roma.empleados em
+            JOIN personas ps ON em.personas_id = ps.id
+            JOIN roma.empresas ep ON em.empresas_id = ep.id`
+            )
+                .then(resp => {
+                    console.log(JSON.stringify(resp.rows));
+                    res.status(200).send(JSON.stringify(resp.rows));
+                }).catch(err=>{
+                    console.error("ERROR", err.stack);
+                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                });
+                return respuesta;
+    
+            })()
+            
+        } catch(error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    }catch(err)
+    {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+    
+    
+};
+
+exports.getEmpleadosBusqueda = function (req, res) {
+
+    try{
+        var respuesta = JSON.stringify({"mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        try{
+            (async ()=>{
+                respuesta = await pool.query(`             
+            SELECT em.id as empleados_id
+            , em.personas_id
+            , em.legajo
+            , em.fecha_ingreso
+            , em.descripcion
+            , gdt(3, em.oficina) as oficina
+            , ep.id as empresas_id
+            , ep.razon_social as empresa_razon_social
+            , ep.nombre_fantasia as empresa_nombre_fantasia
+            , ps.*
+            FROM roma.empleados em
+            JOIN personas ps ON em.personas_id = ps.id
+            JOIN roma.empresas ep ON em.empresas_id = ep.id
+            WHERE (ps.nro_doc::varchar ilike '%`+req.params.texto_busqueda+`%'
+                    OR ps.apellido ilike '%`+req.params.texto_busqueda+`%'
+                    OR ps.nombre ilike '%`+req.params.texto_busqueda+`%'
+                    OR gdt(3, em.oficina) ilike '%`+req.params.texto_busqueda+`%')`
+            )
+                .then(resp => {
+                    console.log(JSON.stringify(resp.rows));
+                    res.status(200).send(JSON.stringify(resp.rows));
+                }).catch(err=>{
+                    console.error("ERROR", err.stack);
+                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                });
+                return respuesta;
+    
+            })()
+            
+        } catch(error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    }catch(err)
+    {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+    
+    
+};
 
 exports.getEmpleadoPorNroDoc = function (req, res) {
 

@@ -28,9 +28,15 @@ var Usuarios_routes = require('./routes/UsuariosRoutes');
 var Personas_routes = require('./routes/PersonasRoutes');
 var Empleados_routes = require('./routes/EmpleadosRoutes');
 var Clientes_routes = require('./routes/ClientesRoutes');
+var FacturaElectronica_routes = require('./routes/FacturaElectronicaRoutes');
+var Provincias_routes = require('./routes/ProvinciasRouter');
+var Ciudades_routes = require('./routes/CiudadesRoutes');
 
 app.use('', Tabgral_routes);
 app.use('', Usuarios_routes);
 app.use('', Personas_routes);
 app.use('', Empleados_routes);
 app.use('', Clientes_routes);
+app.use('', FacturaElectronica_routes);
+app.use('', Provincias_routes);
+app.use('', Ciudades_routes);

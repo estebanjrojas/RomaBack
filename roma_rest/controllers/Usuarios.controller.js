@@ -77,3 +77,51 @@ exports.solicitarAccesoUsuario = async function (req, res) {
     }
 };
 
+
+
+exports.getDatosUsuario = function (req, res) {
+
+    try{
+        var respuesta = JSON.stringify({"mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        try{
+            (async ()=>{
+                respuesta = await pool.query(`             
+                SELECT usr.nomb_usr as usuario
+                    , usr.desc_usr as descripcion_usuario
+                    , usr.debug
+                    , prs.apellido
+                    , prs.nombre
+                    , prs.email
+                    , emp.legajo
+                    , emp.descripcion as descripcion_empleado
+                FROM seguridad.usuarios usr
+                JOIN public.personas prs ON usr.personas_id = prs.id
+                JOIN roma.empleados emp ON emp.personas_id = prs.id
+                WHERE usr.nomb_usr =  '`+req.params.usuario+`';`)
+                .then(resp => {
+                    console.log(JSON.stringify(resp.rows));
+                    res.status(200).send(JSON.stringify(resp.rows));
+                }).catch(err=>{
+                    console.error("ERROR", err.stack);
+                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                });
+                return respuesta;
+    
+            })()
+            
+        } catch(error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    }catch(err)
+    {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+    
+    
+};
+
+
