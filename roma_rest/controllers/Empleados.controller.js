@@ -118,6 +118,7 @@ exports.getEmpleadoPorNroDoc = function (req, res) {
             , em.fecha_ingreso
             , em.descripcion
             , gdt(3, em.oficina) as oficina
+            , em.oficina as oficinas_id
             , ep.id as empresas_id
             , ep.razon_social as empresa_razon_social
             , ep.nombre_fantasia as empresa_nombre_fantasia
