@@ -125,25 +125,27 @@ exports.insertProductoReturnId = function (req, res) {
         const client = await pool.connect()
         try {
 
-            let personas_id = (req.body.personas_id != undefined) ? req.body.personas_id : `null`;
-            let legajo = (req.body.legajo != undefined) ? req.body.legajo : `null`;
-            let fecha_ingreso = (req.body.fecha_ingreso != undefined) ? `'` + req.body.fecha_ingreso + `'` : `now()::date`;
-            let descripcion = (req.body.descripcion != undefined) ? `'` + req.body.descripcion + `'` : `null`;
-            let empresas_id = (req.body.empresas_id != undefined) ? req.body.empresas_id : `null`;
-            let oficina = (req.body.oficina != undefined) ? req.body.oficina : `null`;
+            let codigo = (req.body.codigo != undefined) ? req.body.codigo : `null`;
+            let nombre = (req.body.nombre != undefined) ? req.body.nombre : `null`;
+            let descripcion = (req.body.descripcion != undefined) ? req.body.descripcion : `null`;
+            let descripcion_factura = (req.body.descripcion_factura != undefined) ? `'` + req.body.descripcion_factura + `'` : `null`;
+            let tipo_producto = (req.body.tipo_producto != undefined) ? req.body.tipo_producto : `null`;
+            let fecha_desde = (req.body.fecha_desde != undefined) ? `'` + req.body.fecha_desde + `'` : `now()::date`;
+            let fecha_hasta = (req.body.fecha_hasta != undefined) ? `'` + req.body.fecha_hasta + `'` : `now()::date`;
 
             await client.query('BEGIN')
-            const { empleado } = await client.query(`
-            INSERT INTO roma.empleados (personas_id, legajo, fecha_ingreso, descripcion, empresas_id, oficina)
-            VALUES(`+ personas_id + `, ` + legajo + `, ` + fecha_ingreso + `
-                , `+ descripcion + `, ` + empresas_id + `, ` + oficina + `
+            const { producto } = await client.query(`
+            INSERT INTO roma.productos (codigo, nombre, descripcion, descripcion_factura, tipo_producto, fecha_desde, fecha_hasta)
+            VALUES(`+ codigo + `, ` + nombre + `, ` 
+                    + descripcion + `, `+ descripcion_factura + `, ` 
+                    + tipo_producto + `, ` + fecha_desde + `, `+fecha_hasta + `
                 ) RETURNING id; `)
 
             await client.query('COMMIT')
-            res.status(200).send({ "mensaje": "El empleado se cargo exitosamente", "id": empleado[0].id });
+            res.status(200).send({ "mensaje": "El producto se cargo exitosamente", "id": producto[0].id});
         } catch (e) {
             await client.query('ROLLBACK')
-            res.status(400).send({ "mensaje": "Ocurrio un error al cargar el empleado" });
+            res.status(400).send({ "mensaje": "Ocurrio un error al cargar el producto" });
             throw e
         } finally {
             client.release()
