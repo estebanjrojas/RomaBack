@@ -73,7 +73,7 @@ exports.solicitarAccesoUsuario = async function (req, res) {
 
     }catch(err)
     {
-        res.status(400).send("{'error': 'Ocurrio un Error'}");
+        res.status(400).send({"error": err.stack});
     }
 };
 

@@ -15,7 +15,7 @@ const router = express.Router();
 app.use(router);
 
 app.listen(configuracion.puerto, function () {
-	console.log('Servidor Corriendo en puerto 3000');
+	console.log('Servidor Corriendo en puerto '+configuracion.puerto);
 });
 
 router.get('/getClientIP', function (req, res) {
@@ -31,6 +31,7 @@ var Clientes_routes = require('./routes/ClientesRoutes');
 var FacturaElectronica_routes = require('./routes/FacturaElectronicaRoutes');
 var Provincias_routes = require('./routes/ProvinciasRouter');
 var Ciudades_routes = require('./routes/CiudadesRoutes');
+var Domicilios_routes = require('./routes/DomiciliosRoutes');
 
 app.use('', Tabgral_routes);
 app.use('', Usuarios_routes);
@@ -40,3 +41,4 @@ app.use('', Clientes_routes);
 app.use('', FacturaElectronica_routes);
 app.use('', Provincias_routes);
 app.use('', Ciudades_routes);
+app.use('', Domicilios_routes);

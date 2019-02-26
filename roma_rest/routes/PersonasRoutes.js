@@ -1,8 +1,9 @@
 var express = require("express");
 var router = express.Router();
 var Ctrl = require("../controllers/Personas.controller");
+const middleware = require("../utillities/jwtValidaciones");
 
-router.route('/insertPersonaReturnId').post(Ctrl.insertPersonaReturnId);
-router.route('/insertPersonaDomicilio').post(Ctrl.insertPersonaDomicilio);
-router.route('/getPersonaPorNroDoc/:nro_doc').get(Ctrl.getPersonaPorNroDoc);
+router.route('/insertPersonaReturnId').post(middleware.checkToken, Ctrl.insertPersonaReturnId);
+router.route('/insertPersonaDomicilio').post(middleware.checkToken, Ctrl.insertPersonaDomicilio);
+router.route('/getPersonaPorNroDoc/:nro_doc').get(middleware.checkToken, Ctrl.getPersonaPorNroDoc);
 module.exports = router;

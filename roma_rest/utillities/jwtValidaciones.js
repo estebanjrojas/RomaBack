@@ -13,7 +13,8 @@ let checkToken = (req, res, next) => {
       if (err) {
         return res.json({
           success: false,
-          message: 'El Token no es valido'
+          message: 'El Token no es valido',
+          redirect: true
         });
       } else {
         req.decoded = decoded;
@@ -23,7 +24,8 @@ let checkToken = (req, res, next) => {
   } else {
     return res.json({
       success: false,
-      message: 'No se incluyo el Token de Acceso'
+      message: 'No se incluyo el Token de Acceso',
+      redirect: true
     });
   }
 };
