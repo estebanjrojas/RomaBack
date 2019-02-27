@@ -126,22 +126,47 @@ exports.insertProductoReturnId = function (req, res) {
         try {
 
             let codigo = (req.body.codigo != undefined) ? req.body.codigo : `null`;
-            let nombre = (req.body.nombre != undefined) ? req.body.nombre : `null`;
-            let descripcion = (req.body.descripcion != undefined) ? req.body.descripcion : `null`;
+            let nombre = (req.body.nombre_producto != undefined) ? `'` + req.body.nombre_producto + `'`  : `null`;
+            let descripcion = (req.body.descripcion_producto != undefined) ?  `'` + req.body.descripcion_producto + `'` : `null`;
             let descripcion_factura = (req.body.descripcion_factura != undefined) ? `'` + req.body.descripcion_factura + `'` : `null`;
-            let tipo_producto = (req.body.tipo_producto != undefined) ? req.body.tipo_producto : `null`;
+            let tipo_producto = (req.body.tipo != undefined) ? req.body.tipo : `null`;
             let fecha_desde = (req.body.fecha_desde != undefined) ? `'` + req.body.fecha_desde + `'` : `now()::date`;
             let fecha_hasta = (req.body.fecha_hasta != undefined) ? `'` + req.body.fecha_hasta + `'` : `now()::date`;
 
             await client.query('BEGIN')
+
             const { producto } = await client.query(`
-            INSERT INTO roma.productos (codigo, nombre, descripcion, descripcion_factura, tipo_producto, fecha_desde, fecha_hasta)
-            VALUES(`+ codigo + `, ` + nombre + `, ` 
-                    + descripcion + `, `+ descripcion_factura + `, ` 
-                    + tipo_producto + `, ` + fecha_desde + `, `+fecha_hasta + `
+            INSERT INTO roma.productos (codigo
+                , nombre
+                , descripcion
+                , descripcion_factura
+                , tipo_producto
+                , fecha_desde
+                , fecha_hasta)
+            VALUES(`+ codigo + `
+                , `+ nombre + `
+                , `+ descripcion + `
+                , `+ descripcion_factura +`
+                , `+ tipo_producto + `
+                , `+ fecha_desde + `::date
+                , `+ fecha_hasta + `::date
                 ) RETURNING id; `)
 
-            await client.query('COMMIT')
+           /* const { precios_productos } = await client.query(`
+            INSERT INTO roma.precios_productos(
+                  monto
+                , unidad
+                , fecha_desde
+                , productos_id
+                )
+            VALUES(
+                  `+req.body.precio+`
+                , `+req.body.unidad+`
+                , now()::date
+                , `+producto+`
+                )`)*/
+            
+            await client.query('commit')
             res.status(200).send({ "mensaje": "El producto se cargo exitosamente", "id": producto[0].id});
         } catch (e) {
             await client.query('ROLLBACK')
@@ -152,6 +177,48 @@ exports.insertProductoReturnId = function (req, res) {
         }
     })().catch(e => console.error(e.stack))
 };
+
+exports.insertCaracteristicasProducto = function (req, res) {
+
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
+
+    (async () => {
+        const client = await pool.connect()
+        try {
+            await client.query('BEGIN')
+
+            /*await client.query(`
+            DELETE FROM flores_avisos.salas_fallecidos_fotos 
+            WHERE salas_fallecidos_id = `+ req.body.salas_fallecidos_id + ``)
+            */
+            await client.query(`
+            INSERT INTO roma.productos_caracteristicas(
+                  nombre
+                , descripcion
+                , unidad_medida
+                , valor
+                , productos_id)
+            VALUES(
+                  `+ req.body.nombre + `
+                , `+ req.body.descripcion + `
+                , `+ req.body.unidad_medida+`
+                , `+ req.body.valor+`
+                , `+ req.body.productos_id+`); `)
+
+            await client.query('COMMIT')
+            res.status(200).send({ "mensaje": "Las Caracteristicas se cargaron exitosamente" });
+        } catch (e) {
+            await client.query('ROLLBACK')
+            res.status(400).send({ "mensaje": "Ocurrio un error al cargar las caracteristicas" });
+            throw e
+        } finally {
+            client.release()
+        }
+    })().catch(e => console.error(e.stack))
+};
+
 
 
 exports.insertEmpleadoPersonaDomicilio = function (req, res) {
