@@ -89,7 +89,6 @@ exports.getDatosProductos = function (req, res) {
                 respuesta = await pool.query(`
                 SELECT * 
                 FROM roma.productos pr
-                JOIN roma.productos_categorias prc ON pr.id = prc.productos_id
                 JOIN roma.precios_productos prp ON pr.id = prp.productos_id             
                 WHERE pr.id = `+ req.params.id + ` `)
                     .then(resp => {
@@ -113,6 +112,38 @@ exports.getDatosProductos = function (req, res) {
 };
 
 
+exports.getCaracteristicasProductos = function (req, res) {
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+
+        try {
+            (async () => {
+                respuesta = await pool.query(`
+                SELECT * 
+                FROM roma.productos_caracteristicas             
+                WHERE productos_id = `+ req.params.id + ` `)
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+    }
+};
 
 
 exports.insertProductoReturnId = function (req, res) {
@@ -124,35 +155,34 @@ exports.insertProductoReturnId = function (req, res) {
     (async () => {
         const client = await pool.connect()
         try {
-
             let codigo = (req.body.codigo != undefined) ? req.body.codigo : `null`;
-            let nombre = (req.body.nombre_producto != undefined) ? `'` + req.body.nombre_producto + `'`  : `null`;
-            let descripcion = (req.body.descripcion_producto != undefined) ?  `'` + req.body.descripcion_producto + `'` : `null`;
+            let nombre = (req.body.nombre_producto != undefined) ? `'` + req.body.nombre_producto + `'` : `null`;
+            let descripcion = (req.body.descripcion_producto != undefined) ? `'` + req.body.descripcion_producto + `'` : `null`;
             let descripcion_factura = (req.body.descripcion_factura != undefined) ? `'` + req.body.descripcion_factura + `'` : `null`;
             let tipo_producto = (req.body.tipo != undefined) ? req.body.tipo : `null`;
             let fecha_desde = (req.body.fecha_desde != undefined) ? `'` + req.body.fecha_desde + `'` : `now()::date`;
             let fecha_hasta = (req.body.fecha_hasta != undefined) ? `'` + req.body.fecha_hasta + `'` : `now()::date`;
 
+
             await client.query('BEGIN')
 
-            const { producto } = await client.query(`
+            const { rows } = await client.query(`
+
             INSERT INTO roma.productos (codigo
                 , nombre
                 , descripcion
                 , descripcion_factura
                 , tipo_producto
-                , fecha_desde
-                , fecha_hasta)
+                , fecha_desde)
             VALUES(`+ codigo + `
                 , `+ nombre + `
                 , `+ descripcion + `
-                , `+ descripcion_factura +`
+                , `+ descripcion_factura + `
                 , `+ tipo_producto + `
-                , `+ fecha_desde + `::date
-                , `+ fecha_hasta + `::date
+                , now()::date
                 ) RETURNING id; `)
 
-           /* const { precios_productos } = await client.query(`
+            const { precios_productos } = await client.query(`
             INSERT INTO roma.precios_productos(
                   monto
                 , unidad
@@ -160,14 +190,14 @@ exports.insertProductoReturnId = function (req, res) {
                 , productos_id
                 )
             VALUES(
-                  `+req.body.precio+`
-                , `+req.body.unidad+`
+                  `+ req.body.precio + `
+                , `+ req.body.unidad + `
                 , now()::date
-                , `+producto+`
-                )`)*/
-            
-            await client.query('commit')
-            res.status(200).send({ "mensaje": "El producto se cargo exitosamente", "id": producto[0].id});
+                , `+ rows[0].id + `
+                )`)
+
+            await client.query('COMMIT')
+            res.status(200).send({ "mensaje": "El Producto fue guardado exitosamente", "id": rows[0].id });
         } catch (e) {
             await client.query('ROLLBACK')
             res.status(400).send({ "mensaje": "Ocurrio un error al cargar el producto" });
@@ -189,10 +219,6 @@ exports.insertCaracteristicasProducto = function (req, res) {
         try {
             await client.query('BEGIN')
 
-            /*await client.query(`
-            DELETE FROM flores_avisos.salas_fallecidos_fotos 
-            WHERE salas_fallecidos_id = `+ req.body.salas_fallecidos_id + ``)
-            */
             await client.query(`
             INSERT INTO roma.productos_caracteristicas(
                   nombre
@@ -201,11 +227,11 @@ exports.insertCaracteristicasProducto = function (req, res) {
                 , valor
                 , productos_id)
             VALUES(
-                  `+ req.body.nombre + `
-                , `+ req.body.descripcion + `
-                , `+ req.body.unidad_medida+`
-                , `+ req.body.valor+`
-                , `+ req.body.productos_id+`); `)
+                  '`+ req.body.nombre + `'
+                , '`+ req.body.descripcion + `'
+                , `+ req.body.unidad_medida + `
+                , `+ req.body.valor + `
+                , `+ req.body.productos_id + `); `)
 
             await client.query('COMMIT')
             res.status(200).send({ "mensaje": "Las Caracteristicas se cargaron exitosamente" });
@@ -218,6 +244,86 @@ exports.insertCaracteristicasProducto = function (req, res) {
         }
     })().catch(e => console.error(e.stack))
 };
+
+exports.actualizarDatosProductos = function (req, res) {
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
+
+    (async () => {
+        const client = await pool.connect()
+        try {
+
+            let codigo = (req.body.codigo != undefined) ? req.body.codigo : `null`;
+            let nombre = (req.body.nombre_producto != undefined) ? `'` + req.body.nombre_producto + `'` : `null`;
+            let descripcion = (req.body.descripcion_producto != undefined) ? `'` + req.body.descripcion_producto + `'` : `null`;
+            let descripcion_factura = (req.body.descripcion_factura != undefined) ? `'` + req.body.descripcion_factura + `'` : `null`;
+            let tipo_producto = (req.body.tipo != undefined) ? req.body.tipo : `null`;
+
+            await client.query('BEGIN')
+            const { rows } = await client.query(`
+            UPDATE roma.productos
+            SET 
+                codigo= `+ codigo + `, 
+                nombre= `+ nombre + `, 
+                descripcion= `+ descripcion + `, 
+                descripcion_factura= `+ descripcion_factura + `, 
+                tipo_producto= `+ tipo_producto + `, 
+                fecha_desde= now()::date 
+            WHERE id ='`+ req.body.id_producto + `' returning id`)
+
+
+            const { precios_productos } = await client.query(`
+            UPDATE roma.precios_productos
+            SET 
+                monto= `+ req.body.precio + `, 
+                unidad= `+ req.body.unidad + `, 
+                fecha_desde= now()::date
+            WHERE productos_id = '`+ req.body.id_producto + `'`)
+
+            await client.query('COMMIT')
+            res.status(200).send({ "mensaje": "El Producto fue actualizado exitosamente", "id": rows[0].id });
+        } catch (e) {
+            await client.query('ROLLBACK')
+            res.status(400).send({ "mensaje": "Ocurrio un error actualizar al fallecido" });
+            throw e
+        } finally {
+            client.release()
+        }
+    })().catch(e => console.error(e.stack))
+};
+
+
+
+
+
+exports.eliminarCaracteristicasProductos = function (req, res) {
+
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
+
+    (async () => {
+        const client = await pool.connect()
+        try {
+            await client.query('BEGIN')
+
+            await client.query(`
+            DELETE FROM roma.productos_caracteristicas 
+            WHERE productos_id = `+ req.params.productos_id + ``)
+
+            await client.query('COMMIT')
+            res.status(200).send({ "mensaje": "Las imagenes se eliminaron exitosamente" });
+        } catch (e) {
+            await client.query('ROLLBACK')
+            res.status(400).send({ "mensaje": "Ocurrio un error al cargar la imagen" });
+            throw e
+        } finally {
+            client.release()
+        }
+    })().catch(e => console.error(e.stack))
+};
+
 
 
 
