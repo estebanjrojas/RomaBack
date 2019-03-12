@@ -173,6 +173,7 @@ exports.getEmpleadosSinUsuario = function (req, res) {
                     , ep.nombre_fantasia as empresa_nombre_fantasia
                     , ps.*
                     , usr.nomb_usr
+                    , ps.nombre || ' ' || ps.apellido as nombre_completo
                 FROM roma.empleados em
                 JOIN personas ps ON em.personas_id = ps.id
                 JOIN roma.empresas ep ON em.empresas_id = ep.id

@@ -311,14 +311,28 @@ exports.getDatosUsuariosCargados = function (req, res) {
         var pool = new Pool({
             connectionString: connectionString,
         });
-
+        console.log("ID_USUARIO: "+req.params.id_usuario);
         try {
             (async () => {
                 respuesta = await pool.query(`
-                SELECT * 
-                FROM roma.productos pr
-                JOIN roma.precios_productos prp ON pr.id = prp.productos_id             
-                WHERE pr.id = `+ req.params.id + ` `)
+                SELECT 
+                      em.id as empleados_id
+                    , em.personas_id
+                    , em.legajo
+                    , em.fecha_ingreso
+                    , em.descripcion
+                    , gdt(3, em.oficina) as oficina
+                    , ep.id as empresas_id
+                    , ep.razon_social as empresa_razon_social
+                    , ep.nombre_fantasia as empresa_nombre_fantasia
+                    , ps.*
+                    , ps.nombre || ' ' || ps.apellido as nombre_completo
+                    , usr.nomb_usr
+                FROM roma.empleados em
+                JOIN personas ps ON em.personas_id = ps.id
+                JOIN roma.empresas ep ON em.empresas_id = ep.id
+                JOIN seguridad.usuarios usr ON ps.id = usr.personas_id          
+                WHERE ps.id = `+ req.params.id + ` `)
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
