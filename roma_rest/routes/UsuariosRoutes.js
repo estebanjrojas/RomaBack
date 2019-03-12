@@ -7,6 +7,10 @@ router.route('/solicitarAccesoUsuario/:nomb_usr/:pswrd').get(Ctrl.solicitarAcces
 router.route('/getDatosUsuario/:usuario').get(middleware.checkToken, Ctrl.getDatosUsuario);
 router.route('/getUsuariosTodos/').get(middleware.checkToken, Ctrl.getUsuariosTodos);
 router.route('/getUsuariosBusqueda/:texto_busqueda').get(middleware.checkToken, Ctrl.getUsuariosBusqueda);
+router.route('/getDatosUsuariosCargados/:id').get(middleware.checkToken, Ctrl.getDatosUsuariosCargados);
+router.route('/insertUsuarioReturnId/').post(middleware.checkToken, Ctrl.insertUsuarioReturnId);
+router.route('/actualizarDatosUsuarios').put(Ctrl.actualizarDatosUsuarios);
+
 
 module.exports = router;
 
