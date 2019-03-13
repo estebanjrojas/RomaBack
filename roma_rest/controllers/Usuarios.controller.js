@@ -332,7 +332,7 @@ exports.getDatosUsuariosCargados = function (req, res) {
                 JOIN personas ps ON em.personas_id = ps.id
                 JOIN roma.empresas ep ON em.empresas_id = ep.id
                 JOIN seguridad.usuarios usr ON ps.id = usr.personas_id          
-                WHERE ps.id = `+ req.params.id + ` `)
+                WHERE em.id = `+ req.params.id + ` `)
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -352,6 +352,91 @@ exports.getDatosUsuariosCargados = function (req, res) {
         res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
     }
 };
+
+
+exports.getPerfilesAsignados = function (req, res) {
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        console.log("ID_USUARIO: "+req.params.id_usuario);
+        try {
+            (async () => {
+                respuesta = await pool.query(`
+                SELECT
+                      per.id
+                    , per.nombre
+                    , per.descripcion 
+                FROM seguridad.usuarios_perfiles up 
+                JOIN seguridad.perfiles per ON up.perfiles_id = per.id
+                JOIN seguridad.usuarios u ON up.usuarios_id = u.id
+                JOIN personas p ON u.personas_id = p.id
+                JOIN roma.empleados emp ON p.id = emp.personas_id
+                WHERE emp.id = `+ req.params.id + ` `)
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+    }
+};
+
+exports.getPerfilesSinAsignar = function (req, res) {
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        console.log("ID_USUARIO: "+req.params.id_usuario);
+        try {
+            (async () => {
+                respuesta = await pool.query(`
+                SELECT * 
+                FROM seguridad.perfiles 
+                WHERE id not in (
+                    SELECT 
+                        perf.id 
+                    FROM seguridad.perfiles perf
+                    JOIN seguridad.usuarios_perfiles up ON perf.id = up.perfiles_id
+                    JOIN seguridad.usuarios usr ON up.usuarios_id = usr.id
+                    JOIN personas p ON usr.personas_id = p.id
+                    JOIN roma.empleados emp ON p.id = emp.personas_id
+                    WHERE emp.id in (`+ req.params.id + `)
+                )`)
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+    }
+};
+
+
 
 
 
