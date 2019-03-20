@@ -151,6 +151,58 @@ exports.getEmpleadoPorNroDoc = function (req, res) {
 };
 
 
+exports.getEmpleadosSinUsuario = function (req, res) {
+
+    try{
+        var respuesta = JSON.stringify({"mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        try{
+            (async ()=>{
+                respuesta = await pool.query(`             
+                SELECT 
+                      em.id as empleados_id
+                    , em.personas_id
+                    , em.legajo
+                    , em.fecha_ingreso
+                    , em.descripcion
+                    , gdt(3, em.oficina) as oficina
+                    , ep.id as empresas_id
+                    , ep.razon_social as empresa_razon_social
+                    , ep.nombre_fantasia as empresa_nombre_fantasia
+                    , ps.*
+                    , usr.nomb_usr
+                    , ps.nombre || ' ' || ps.apellido as nombre_completo
+                FROM roma.empleados em
+                JOIN personas ps ON em.personas_id = ps.id
+                JOIN roma.empresas ep ON em.empresas_id = ep.id
+                LEFT JOIN seguridad.usuarios usr ON ps.id = usr.personas_id
+                WHERE usr.nomb_usr is null`
+                )
+                .then(resp => {
+                    console.log(JSON.stringify(resp.rows));
+                    res.status(200).send(JSON.stringify(resp.rows));
+                }).catch(err=>{
+                    console.error("ERROR", err.stack);
+                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                });
+                return respuesta;
+    
+            })()
+            
+        } catch(error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    }catch(err)
+    {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+    
+    
+};
+
 exports.insertEmpleadoReturnId = function (req, res) {
 
     var pool = new Pool({
