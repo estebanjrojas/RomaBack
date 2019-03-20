@@ -110,7 +110,6 @@ exports.insertPersonaDomicilio = function (req, res) {
             let fecha_cese = (req.body.fecha_cese!=undefined)? `'`+req.body.fecha_cese+`'` : `null`;
             let usuario_carga = (req.body.usuario_carga!=undefined)? `'`+req.body.usuario_carga+`'` : `null`;
             let ip_carga = (req.body.ip_carga!=undefined)? `'`+req.body.ip_carga+`'` : `null`;
-            let fecha_carga = (req.body.fecha_carga!=undefined)? `'`+req.body.fecha_carga+`'` : `null`;
             let telefono_caracteristica = (req.body.telefono_caracteristica!=undefined)? `'`+req.body.telefono_caracteristica+`'` : `null`;
             let celular_caracteristica = (req.body.celular_caracteristica!=undefined)? `'`+req.body.celular_caracteristica+`'` : `null`;
 
@@ -130,7 +129,7 @@ exports.insertPersonaDomicilio = function (req, res) {
                 , fecha_nac, sexo, tipo_persona
                 , fecha_create, ip, usuario, fecha_mov
                 , estado_civil
-                , fecha_cese, usuario_carga, ip_carga, fecha_carga
+                , fecha_cese, usuario_carga, ip_carga
                 , telefono_caracteristica, celular_caracteristica
                 , domicilios_id)
             VALUES(`+ nro_doc + `, `+ tipo_doc + `
@@ -139,7 +138,7 @@ exports.insertPersonaDomicilio = function (req, res) {
                 , `+ fecha_nac + `, `+ sexo + `, `+ tipo_persona + `
                 , now(), `+ ip + `, `+ usuario + `, now()
                 , `+ estado_civil + `
-                , `+ fecha_cese + `, `+ usuario_carga + `, `+ ip_carga + `, `+ fecha_carga + `
+                , `+ fecha_cese + `, `+ usuario_carga + `, `+ ip_carga + `
                 , `+ telefono_caracteristica + `, `+ celular_caracteristica + `
                 , `+ domicilio[0].id + `
                 ) RETURNING id; `)

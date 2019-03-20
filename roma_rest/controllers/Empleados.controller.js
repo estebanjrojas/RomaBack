@@ -170,7 +170,7 @@ exports.insertEmpleadoReturnId = function (req, res) {
 
             await client.query('BEGIN')
             const { empleado } = await client.query(`
-            INSERT INTO roma.empleados (personas_id, legajo, fecha_ingreso, descripcion, empresas_id, oficina)
+            INSERT INTO roma.empleados(personas_id, legajo, fecha_ingreso, descripcion, empresas_id, oficina)
             VALUES(`+personas_id + `, `+ legajo + `, `+ fecha_ingreso + `
                 , `+ descripcion + `, `+ empresas_id + `, `+ oficina + `
                 ) RETURNING id; `)
@@ -233,48 +233,69 @@ exports.insertEmpleadoPersonaDomicilio = function (req, res) {
             let descripcion = (req.body.descripcion!=undefined)? `'`+req.body.descripcion+`'` : `null`;
             let empresas_id = (req.body.empresas_id!=undefined)? req.body.empresas_id : `null`;
             let oficina = (req.body.oficina!=undefined)? req.body.oficina : `null`;
+            
+            client.query('BEGIN', (err1, res1) => {
+                if(err1){
+                    console.log('Ocurrio un error iniciando la transaccion: '+err1.stack);
+                }
+                client.query(`
+                INSERT INTO domicilios(calle, numero, piso, depto
+                    , manzana, lote, block, barrio, ciudades_id)
+                VALUES(`+ calle + `, `+ numero + `, `+ piso + `, `+ depto + `
+                , `+ manzana + `, `+ lote + `, `+ block + `, `+ barrio + `, `+ciudades_id+`)
+                RETURNING id;`, (err2, res2) => { 
+                    const domicilio = res2.rows[0].id; 
+                    if(err2) {
+                        console.log("Ocurrio un error al guardar el domicilio: "+err2.stack);
+                        client.query('ROLLBACK');
+                    };
+                    client.query(`
+                        INSERT INTO personas(nro_doc, tipo_doc
+                            , apellido, nombre
+                            , telefono, telefono_cel, email
+                            , fecha_nac, sexo, tipo_persona
+                            , fecha_create, ip, usuario, fecha_mov
+                            , estado_civil
+                            , fecha_cese, usuario_carga, ip_carga, fecha_carga
+                            , telefono_caracteristica, celular_caracteristica
+                            , domicilios_id)
+                        VALUES(`+ nro_doc + `, `+ tipo_doc + `
+                            , `+ apellido + `, `+ nombre + `
+                            , `+ telefono + `, `+ celular + `, `+ email + `
+                            , `+ fecha_nac + `, `+ sexo + `, `+ tipo_persona + `
+                            , now(), `+ ip + `, `+ usuario + `, now()
+                            , `+ estado_civil + `
+                            , `+ fecha_cese + `, `+ usuario_carga + `, `+ ip_carga + `, `+ fecha_carga + `
+                            , `+ telefono_caracteristica + `, `+ celular_caracteristica + `
+                            , `+ domicilio + `
+                            ) RETURNING id; `, (err3, res3) => { 
+                                if(err3) {
+                                    console.log("Ocurrio un error al guardar la persona: "+err3.stack);
+                                    client.query('ROLLBACK');
+                                };
+                                const persona = res3.rows[0].id;
+                                
+                                client.query(`
+                                    INSERT INTO roma.empleados (personas_id, legajo, fecha_ingreso, descripcion, empresas_id, oficina)
+                                    VALUES(`+persona + `, `+ legajo + `, `+ fecha_ingreso + `
+                                        , `+ descripcion + `, `+ empresas_id + `, `+ oficina + `
+                                        ) RETURNING *; `, (err4, res4) => { 
+                                            if(err4){ 
+                                                console.log("Ocurrio un error al guardar el empleado: "+err4.stack);
+                                                client.query('ROLLBACK');
+                                            }
+                                        client.query('COMMIT');
+                                        res4.status(200).send({ "mensaje": "El empleado se cargo exitosamente"});
+                                     });
 
-            await client.query('BEGIN')
-
-            const { domicilio} = await client.query(`
-            INSERT INTO domicilios(calle, numero, piso, depto
-                , manzana, lote, block, barrio, ciudades_id)
-            VALUES(`+ calle + `, `+ numero + `, `+ piso + `, `+ depto + `
-            , `+ manzana + `, `+ lote + `, `+ block + `, `+ barrio + `, `+ciudades_id+`)
-            RETURNING id;`)
-
-            const { persona } = await client.query(`
-            INSERT INTO personas(nro_doc, tipo_doc
-                , apellido, nombre
-                , telefono, telefono_cel, email
-                , fecha_nac, sexo, tipo_persona
-                , fecha_create, ip, usuario, fecha_mov
-                , estado_civil
-                , fecha_cese, usuario_carga, ip_carga, fecha_carga
-                , telefono_caracteristica, celular_caracteristica
-                , domicilios_id)
-            VALUES(`+ nro_doc + `, `+ tipo_doc + `
-                , `+ apellido + `, `+ nombre + `
-                , `+ telefono + `, `+ celular + `, `+ email + `
-                , `+ fecha_nac + `, `+ sexo + `, `+ tipo_persona + `
-                , now(), `+ ip + `, `+ usuario + `, now()
-                , `+ estado_civil + `
-                , `+ fecha_cese + `, `+ usuario_carga + `, `+ ip_carga + `, `+ fecha_carga + `
-                , `+ telefono_caracteristica + `, `+ celular_caracteristica + `
-                , `+ domicilio[0].id + `
-                ) RETURNING id; `)
-
-            const { empleado } = await client.query(`
-            INSERT INTO roma.empleados (personas_id, legajo, fecha_ingreso, descripcion, empresas_id, oficina)
-            VALUES(`+persona[0].id + `, `+ legajo + `, `+ fecha_ingreso + `
-                , `+ descripcion + `, `+ empresas_id + `, `+ oficina + `
-                ) RETURNING *; `)
-        
-            await client.query('COMMIT')
-            res.status(200).send({ "mensaje": "La persona se cargo exitosamente", "insertado": empleado[0]});
+                            });
+                });
+            })
+      
+            
         } catch (e) {
             await client.query('ROLLBACK')
-            res.status(400).send({ "mensaje": "Ocurrio un error al cargar la persona"});
+            res.status(400).send({ "mensaje": "Ocurrio un error al cargar la persona"+e.stack});
             throw e
         } finally {
             client.release()
