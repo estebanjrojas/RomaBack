@@ -221,7 +221,7 @@ exports.insertUsuarioReturnId = function (req, res) {
                 debug = 0;
             }
 
-            console.log("Personas_id:"+ personas_id);
+            console.log("Personas_id:" + personas_id);
             await client.query('BEGIN')
 
             const { rows } = await client.query(`
@@ -251,6 +251,43 @@ exports.insertUsuarioReturnId = function (req, res) {
         }
     })().catch(e => console.error(e.stack))
 };
+
+
+exports.insertPerfilesAsignados = function (req, res) {
+
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
+
+    (async () => {
+        const client = await pool.connect()
+        try {
+            let usuarios_id = (req.body.usuarios_id != undefined) ? req.body.usuarios_id : `null`;
+            let perfiles_id = (req.body.perfiles_id != undefined) ? req.body.perfiles_id : `null`;
+
+            await client.query('BEGIN')
+
+            const { rows } = await client.query(`
+            INSERT INTO seguridad.usuarios_perfiles(
+                  usuarios_id
+                , perfiles_id)
+            VALUES(`+ usuarios_id + `
+                , `+ perfiles_id + `
+                )  RETURNING id`)
+
+            await client.query('COMMIT')
+            res.status(200).send({ "mensaje": "El Perfil fue guardado exitosamente", "id": rows[0].id });
+        } catch (e) {
+            await client.query('ROLLBACK')
+            res.status(400).send({ "mensaje": "Ocurrio un error al cargar el Perfil" });
+            throw e
+        } finally {
+            client.release()
+        }
+    })().catch(e => console.error(e.stack))
+};
+
+
 
 
 
@@ -311,7 +348,7 @@ exports.getDatosUsuariosCargados = function (req, res) {
         var pool = new Pool({
             connectionString: connectionString,
         });
-        console.log("ID_USUARIO: "+req.params.id_usuario);
+        console.log("ID_USUARIO: " + req.params.id_usuario);
         try {
             (async () => {
                 respuesta = await pool.query(`
@@ -328,6 +365,7 @@ exports.getDatosUsuariosCargados = function (req, res) {
                     , ps.*
                     , ps.nombre || ' ' || ps.apellido as nombre_completo
                     , usr.nomb_usr
+                    , usr.id as usuario_id
                 FROM roma.empleados em
                 JOIN personas ps ON em.personas_id = ps.id
                 JOIN roma.empresas ep ON em.empresas_id = ep.id
@@ -360,7 +398,7 @@ exports.getPerfilesAsignados = function (req, res) {
         var pool = new Pool({
             connectionString: connectionString,
         });
-        console.log("ID_USUARIO: "+req.params.id_usuario);
+        console.log("ID_USUARIO: " + req.params.id_usuario);
         try {
             (async () => {
                 respuesta = await pool.query(`
@@ -400,7 +438,6 @@ exports.getPerfilesSinAsignar = function (req, res) {
         var pool = new Pool({
             connectionString: connectionString,
         });
-        console.log("ID_USUARIO: "+req.params.id_usuario);
         try {
             (async () => {
                 respuesta = await pool.query(`
@@ -436,6 +473,34 @@ exports.getPerfilesSinAsignar = function (req, res) {
     }
 };
 
+
+
+exports.deletePerfiles = function (req, res) {
+
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
+
+    (async () => {
+        const client = await pool.connect()
+        try {
+            await client.query('BEGIN')
+
+            await client.query(`
+            DELETE FROM seguridad.usuarios_perfiles 
+            WHERE usuarios_id = `+ req.params.id_usuario + ``)
+
+            await client.query('COMMIT')
+            res.status(200).send({ "mensaje": "Las imagenes se eliminaron exitosamente" });
+        } catch (e) {
+            await client.query('ROLLBACK')
+            res.status(400).send({ "mensaje": "Ocurrio un error al cargar la imagen" });
+            throw e
+        } finally {
+            client.release()
+        }
+    })().catch(e => console.error(e.stack))
+};
 
 
 
