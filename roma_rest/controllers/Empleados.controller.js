@@ -264,8 +264,8 @@ exports.insertEmpleadoPersonaDomicilio = function (req, res) {
             let tipo_doc = (req.body.tipo_doc!=undefined)? req.body.tipo_doc : `null`;
             let apellido = (req.body.apellido!=undefined)? `'`+req.body.apellido+`'` : `null`;
             let nombre = (req.body.nombre!=undefined)? `'`+req.body.nombre+`'` : `null`;
-            let telefono = (req.body.telefono!=undefined)? req.body.telefono : `null`;
-            let celular = (req.body.telefono_cel!=undefined)? req.body.telefono_cel : `null`;
+            let telefono = (req.body.telefono!=undefined)? `'`+req.body.telefono+`'` : `null`;
+            let celular = (req.body.telefono_cel!=undefined)? `'`+req.body.telefono_cel+`'` : `null`;
             let email = (req.body.email!=undefined)? `'`+req.body.email+`'` : `null`;
             let fecha_nac = (req.body.fecha_nac!=undefined)? `'`+req.body.fecha_nac+`'` : `null`;
             let sexo = (req.body.sexo!=null)? req.body.sexo : `null`;
@@ -296,11 +296,33 @@ exports.insertEmpleadoPersonaDomicilio = function (req, res) {
                 VALUES(`+ calle + `, `+ numero + `, `+ piso + `, `+ depto + `
                 , `+ manzana + `, `+ lote + `, `+ block + `, `+ barrio + `, `+ciudades_id+`)
                 RETURNING id;`, (err2, res2) => { 
-                    const domicilio = res2.rows[0].id; 
+                    const domicilio = res2.rows[0].id;
+                    console.log("Domicilio Insertado con ID:"+res2.rows[0].id); 
                     if(err2) {
                         console.log("Ocurrio un error al guardar el domicilio: "+err2.stack);
                         client.query('ROLLBACK');
                     };
+
+                    console.log(`
+                    INSERT INTO personas(nro_doc, tipo_doc
+                        , apellido, nombre
+                        , telefono, telefono_cel, email
+                        , fecha_nac, sexo, tipo_persona
+                        , fecha_create, ip, usuario, fecha_mov
+                        , estado_civil
+                        , fecha_cese, usuario_carga, ip_carga, fecha_carga
+                        , telefono_caracteristica, celular_caracteristica
+                        , domicilios_id)
+                    VALUES(`+ nro_doc + `, `+ tipo_doc + `
+                        , `+ apellido + `, `+ nombre + `
+                        , `+ telefono + `, `+ celular + `, `+ email + `
+                        , `+ fecha_nac + `, `+ sexo + `, `+ tipo_persona + `
+                        , now(), `+ ip + `, `+ usuario + `, now()
+                        , `+ estado_civil + `
+                        , `+ fecha_cese + `, `+ usuario_carga + `, `+ ip_carga + `, `+ fecha_carga + `
+                        , `+ telefono_caracteristica + `, `+ celular_caracteristica + `
+                        , `+ domicilio + `
+                        ) RETURNING id;`);
                     client.query(`
                         INSERT INTO personas(nro_doc, tipo_doc
                             , apellido, nombre
@@ -336,15 +358,13 @@ exports.insertEmpleadoPersonaDomicilio = function (req, res) {
                                                 console.log("Ocurrio un error al guardar el empleado: "+err4.stack);
                                                 client.query('ROLLBACK');
                                             }
-                                        client.query('COMMIT');
-                                        res4.status(200).send({ "mensaje": "El empleado se cargo exitosamente"});
+                                            client.query('COMMIT');       
                                      });
 
                             });
                 });
             })
-      
-            
+            res.status(200).send({ "mensaje": "El empleado se cargo exitosamente"});
         } catch (e) {
             await client.query('ROLLBACK')
             res.status(400).send({ "mensaje": "Ocurrio un error al cargar la persona"+e.stack});
