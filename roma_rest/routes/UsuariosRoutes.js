@@ -11,7 +11,9 @@ router.route('/getDatosUsuariosCargados/:id').get(middleware.checkToken, Ctrl.ge
 router.route('/getPerfilesAsignados/:id').get(middleware.checkToken, Ctrl.getPerfilesAsignados);
 router.route('/getPerfilesSinAsignar/:id').get(middleware.checkToken, Ctrl.getPerfilesSinAsignar);
 router.route('/insertUsuarioReturnId/').post(middleware.checkToken, Ctrl.insertUsuarioReturnId);
+router.route('/insertPerfilesAsignados/').post(middleware.checkToken, Ctrl.insertPerfilesAsignados);
 router.route('/actualizarDatosUsuarios').put(Ctrl.actualizarDatosUsuarios);
+router.route('/deletePerfiles/:id_usuario').delete(Ctrl.deletePerfiles);
 
 
 module.exports = router;
