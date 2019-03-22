@@ -126,7 +126,57 @@ exports.getEmpleadoPorNroDoc = function (req, res) {
             FROM roma.empleados em
             JOIN personas ps ON em.personas_id = ps.id
             JOIN roma.empresas ep ON em.empresas_id = ep.id
-            WHERE nro_doc =  `+req.params.nro_doc)
+            WHERE tipo_doc = `+req.params.tipo_doc+` AND nro_doc =  `+req.params.nro_doc)
+                .then(resp => {
+                    console.log(JSON.stringify(resp.rows));
+                    res.status(200).send(JSON.stringify(resp.rows));
+                }).catch(err=>{
+                    console.error("ERROR", err.stack);
+                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                });
+                return respuesta;
+    
+            })()
+            
+        } catch(error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    }catch(err)
+    {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+    
+};
+
+
+exports.getDatosEmpleadoPorId = function (req, res) {
+
+    try{
+        var respuesta = JSON.stringify({"mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        try{
+            (async ()=>{
+                respuesta = await pool.query(`             
+                SELECT em.id as empleados_id
+                        , em.personas_id
+                        , em.legajo
+                        , em.fecha_ingreso
+                        , em.descripcion
+                        , gdt(3, em.oficina) as oficina
+                        , em.oficina as oficinas_id
+                        , ep.id as empresas_id
+                        , ep.razon_social as empresa_razon_social
+                        , ep.nombre_fantasia as empresa_nombre_fantasia
+                        , ps.*
+                        , dom.*
+                FROM roma.empleados em
+                JOIN personas ps ON em.personas_id = ps.id
+                JOIN roma.empresas ep ON em.empresas_id = ep.id
+                LEFT JOIN domicilios dom ON ps.domicilios_id = dom.id
+                WHERE em.id =  `+req.params.id)
                 .then(resp => {
                     console.log(JSON.stringify(resp.rows));
                     res.status(200).send(JSON.stringify(resp.rows));
@@ -149,7 +199,6 @@ exports.getEmpleadoPorNroDoc = function (req, res) {
     
     
 };
-
 
 exports.getEmpleadosSinUsuario = function (req, res) {
 
@@ -275,8 +324,8 @@ exports.insertEmpleadoPersonaDomicilio = function (req, res) {
             let estado_civil = (req.body.estado_civil!=undefined)? req.body.estado_civil : `null`;
             let fecha_cese = (req.body.fecha_cese!=undefined)? `'`+req.body.fecha_cese+`'` : `null`;
             let usuario_carga = (req.body.usuario_carga!=undefined)? `'`+req.body.usuario_carga+`'` : `null`;
-            let ip_carga = (req.body.ip_carga!=undefined)? `'`+req.body.ip_carga+`'` : `null`;
-            let fecha_carga = (req.body.fecha_carga!=undefined)? `'`+req.body.fecha_carga+`'` : `null`;
+            let ip_carga = `'`+req.ip+`'`;
+            let fecha_carga =  `now()`;
             let telefono_caracteristica = (req.body.telefono_caracteristica!=undefined)? `'`+req.body.telefono_caracteristica+`'` : `null`;
             let celular_caracteristica = (req.body.celular_caracteristica!=undefined)? `'`+req.body.celular_caracteristica+`'` : `null`;
             //Parametros para insertar el empleado

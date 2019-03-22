@@ -166,7 +166,7 @@ exports.getPersonaPorNroDoc = function (req, res) {
                 respuesta = await pool.query(`
                 SELECT *
                 FROM personas
-                WHERE nro_doc = `+req.params.nro_doc)
+                WHERE tipo_doc = `+req.params.tipo_doc+` AND nro_doc = `+req.params.nro_doc)
                 .then(resp => {
                     console.log(JSON.stringify(resp.rows));
                     res.status(200).send(JSON.stringify(resp.rows));

@@ -5,5 +5,5 @@ const middleware = require("../utillities/jwtValidaciones");
 
 router.route('/insertPersonaReturnId').post(middleware.checkToken, Ctrl.insertPersonaReturnId);
 router.route('/insertPersonaDomicilio').post(middleware.checkToken, Ctrl.insertPersonaDomicilio);
-router.route('/getPersonaPorNroDoc/:nro_doc').get(middleware.checkToken, Ctrl.getPersonaPorNroDoc);
+router.route('/getPersonaPorNroDoc/:tipo_doc/:nro_doc').get(middleware.checkToken, Ctrl.getPersonaPorNroDoc);
 module.exports = router;
