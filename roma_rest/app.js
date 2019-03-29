@@ -33,6 +33,7 @@ var FacturaElectronica_routes = require('./routes/FacturaElectronicaRoutes');
 var Provincias_routes = require('./routes/ProvinciasRouter');
 var Ciudades_routes = require('./routes/CiudadesRoutes');
 var Domicilios_routes = require('./routes/DomiciliosRoutes');
+var Categorias_routes = require('./routes/CategoriasRoutes');
 
 app.use('', Tabgral_routes);
 app.use('', Usuarios_routes);
@@ -44,3 +45,4 @@ app.use('', FacturaElectronica_routes);
 app.use('', Provincias_routes);
 app.use('', Ciudades_routes);
 app.use('', Domicilios_routes);
+app.use('', Categorias_routes);
