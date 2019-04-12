@@ -90,3 +90,78 @@ exports.insertClientePersonaDomicilio = function (req, res) {
         }
         })().catch(e => console.error(e.stack))
 };
+
+
+
+exports.getClientesTodos = function (req, res) {
+
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        try {
+            (async () => {
+                respuesta = await pool.query(`             
+                SELECT cli.id as clientes_id, cli.fecha_alta, p.id as personas_id, p.* 
+                FROM roma.clientes cli
+                JOIN personas p ON cli.personas_id = p.id  `)
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+
+
+};
+
+exports.getClientesBusqueda = function (req, res) {
+
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        try {
+            (async () => {
+                respuesta = await pool.query(`             
+            SELECT *
+            FROM roma.clientes cli
+            JOIN personas p ON cli.personas_id = p.id 
+            WHERE (p.nro_doc::varchar ilike '%`+ req.params.texto_busqueda + `%'
+                    OR p.nombre::varchar ilike '%`+ req.params.texto_busqueda + `%'
+                    OR p.apellido ilike '%`+ req.params.texto_busqueda + `%')`
+                )
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+
+};
