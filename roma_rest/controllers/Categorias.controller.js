@@ -15,8 +15,8 @@ exports.obtenerJSONTodasCategorias = function (req, res) {
                 respuesta = await pool.query(`SELECT roma.armar_json_completo_categorias() as categorias;`
             )
                 .then(resp => {
-                    console.log(JSON.stringify(resp.rows));
-                    res.status(200).send(JSON.stringify(resp.rows));
+                    console.log(resp.rows[0]);
+                    res.status(200).send(resp.rows[0]);
                 }).catch(err=>{
                     console.error("ERROR", err.stack);
                     res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
@@ -31,7 +31,7 @@ exports.obtenerJSONTodasCategorias = function (req, res) {
 
     }catch(err)
     {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
     }
     
     
