@@ -59,9 +59,9 @@ exports.getPuntosVentaBusqueda = function (req, res) {
                     , tab.descrip as sucursal_descrip
                 FROM roma.puntos_venta pv
                 JOIN tabgral tab ON pv.sucursal = tab.codigo AND tab.nro_tab = 6
-                WHERE (tab.descrip::varchar ilike '%`+ req.params.texto_busqueda + `%'
+                WHERE (tab.descrip ilike '%`+ req.params.texto_busqueda + `%'
                     OR tab.codigo::varchar ilike '%`+ req.params.texto_busqueda + `%'
-                    OR pv.numero ilike '%`+ req.params.texto_busqueda + `%')`
+                    OR pv.numero::varchar ilike '%`+ req.params.texto_busqueda + `%')`
                 )
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));

@@ -36,3 +36,75 @@ exports.obtenerJSONTodasCategorias = function (req, res) {
     
     
 };
+
+
+exports.getCategoriasTodas = function (req, res) {
+
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        try {
+            (async () => {
+                respuesta = await pool.query(`             
+                SELECT * 
+                FROM roma.categorias  `)
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+
+
+};
+
+exports.getCategoriasBusqueda = function (req, res) {
+
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        try {
+            (async () => {
+                respuesta = await pool.query(`             
+            SELECT *
+            FROM roma.categorias 
+            WHERE (nombre::varchar ilike '%`+ req.params.texto_busqueda + `%'
+                    OR descripcion::varchar ilike '%`+ req.params.texto_busqueda + `%'
+                    OR categorias_id_padre::varchar ilike '%`+ req.params.texto_busqueda + `%')`
+                )
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+
+};
