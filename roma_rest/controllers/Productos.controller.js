@@ -14,8 +14,14 @@ exports.getProductosTodos = function (req, res) {
         try {
             (async () => {
                 respuesta = await pool.query(`             
-            SELECT *
-            FROM roma.productos `)
+            SELECT 
+                  p.*
+                , pc.*
+                , cat.nombre as nombre_categoria
+            FROM roma.productos p
+            JOIN roma.productos_categorias pc ON p.id = pc.productos_id
+            JOIN roma.categorias cat ON pc.categorias_id = cat.id
+             `)
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -48,11 +54,17 @@ exports.getProductosBusqueda = function (req, res) {
         try {
             (async () => {
                 respuesta = await pool.query(`             
-            SELECT *
-            FROM roma.productos
-            WHERE (codigo::varchar ilike '%`+ req.params.texto_busqueda + `%'
-                    OR nombre ilike '%`+ req.params.texto_busqueda + `%'
+            SELECT 
+                p.*
+              , pc.*
+              , cat.nombre as nombre_categoria
+            FROM roma.productos p
+            JOIN roma.productos_categorias pc ON p.id = pc.productos_id
+            JOIN roma.categorias cat ON pc.categorias_id = cat.id
+            WHERE (p.codigo::varchar ilike '%`+ req.params.texto_busqueda + `%'
+                    OR p.nombre ilike '%`+ req.params.texto_busqueda + `%'
                     OR descripcion ilike '%`+ req.params.texto_busqueda + `%'
+                    OR cat.nombre ilike '%`+ req.params.texto_busqueda + `%'
                     OR tipo_producto) ilike '%`+ req.params.texto_busqueda + `%')`
                 )
                     .then(resp => {
@@ -174,7 +186,7 @@ exports.insertProductoReturnId = function (req, res) {
                 , descripcion_factura
                 , tipo_producto
                 , fecha_desde)
-            VALUES(`+ codigo + `
+            VALUES('`+ codigo + `'
                 , `+ nombre + `
                 , `+ descripcion + `
                 , `+ descripcion_factura + `
@@ -244,6 +256,38 @@ exports.insertCaracteristicasProducto = function (req, res) {
         }
     })().catch(e => console.error(e.stack))
 };
+
+exports.insertCategoriasProducto = function (req, res) {
+
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
+
+    (async () => {
+        const client = await pool.connect()
+        try {
+            await client.query('BEGIN')
+
+            await client.query(`
+            INSERT INTO roma.productos_categorias(
+                  productos_id
+                , categorias_id)
+            VALUES(
+                  `+ req.body.productos_id + `
+                , `+ req.body.categorias_id + ` ); `)
+
+            await client.query('COMMIT')
+            res.status(200).send({ "mensaje": "Las Categorias se cargaron exitosamente" });
+        } catch (e) {
+            await client.query('ROLLBACK')
+            res.status(400).send({ "mensaje": "Ocurrio un error al cargar las Categorias" });
+            throw e
+        } finally {
+            client.release()
+        }
+    })().catch(e => console.error(e.stack))
+};
+
 
 exports.actualizarDatosProductos = function (req, res) {
     var pool = new Pool({

@@ -9,6 +9,7 @@ router.route('/getDatosProductos/:id').get(middleware.checkToken, Ctrl.getDatosP
 router.route('/getCaracteristicasProductos/:id').get(middleware.checkToken, Ctrl.getCaracteristicasProductos);
 router.route('/insertProductoReturnId/').post(middleware.checkToken, Ctrl.insertProductoReturnId);
 router.route('/insertCaracteristicasProducto/').post(middleware.checkToken, Ctrl.insertCaracteristicasProducto);
+router.route('/insertCategoriasProducto/').post(middleware.checkToken, Ctrl.insertCategoriasProducto);
 router.route('/actualizarDatosProductos').put(Ctrl.actualizarDatosProductos);
 router.route('/eliminarCaracteristicasProductos/:productos_id').delete(middleware.checkToken, Ctrl.eliminarCaracteristicasProductos);
 router.route('/insertEmpleadoPersonaDomicilio/').post(middleware.checkToken, Ctrl.insertEmpleadoPersonaDomicilio);
