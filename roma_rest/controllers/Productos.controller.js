@@ -14,7 +14,7 @@ exports.getProductosTodos = function (req, res) {
         try {
             (async () => {
                 respuesta = await pool.query(`             
-            SELECT *
+            SELECT *, roma.get_imagen_principal_producto(id) as imagen
             FROM roma.productos `)
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
@@ -48,7 +48,7 @@ exports.getProductosBusqueda = function (req, res) {
         try {
             (async () => {
                 respuesta = await pool.query(`             
-            SELECT *
+            SELECT *, roma.get_imagen_principal_producto(id) as imagen
             FROM roma.productos
             WHERE (codigo::varchar ilike '%`+ req.params.texto_busqueda + `%'
                     OR nombre ilike '%`+ req.params.texto_busqueda + `%'
@@ -87,7 +87,7 @@ exports.getDatosProductos = function (req, res) {
         try {
             (async () => {
                 respuesta = await pool.query(`
-                SELECT * 
+                SELECT *, roma.get_imagen_principal_producto(pr.id) as imagen
                 FROM roma.productos pr
                 JOIN roma.precios_productos prp ON pr.id = prp.productos_id             
                 WHERE pr.id = `+ req.params.id + ` `)
@@ -155,7 +155,7 @@ exports.insertProductoReturnId = function (req, res) {
     (async () => {
         const client = await pool.connect()
         try {
-            let codigo = (req.body.codigo != undefined) ? req.body.codigo : `null`;
+            let codigo = (req.body.codigo != undefined) ?  `'` + req.body.codigo + `'` : `null`;
             let nombre = (req.body.nombre_producto != undefined) ? `'` + req.body.nombre_producto + `'` : `null`;
             let descripcion = (req.body.descripcion_producto != undefined) ? `'` + req.body.descripcion_producto + `'` : `null`;
             let descripcion_factura = (req.body.descripcion_factura != undefined) ? `'` + req.body.descripcion_factura + `'` : `null`;
