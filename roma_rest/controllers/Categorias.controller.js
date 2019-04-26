@@ -48,7 +48,7 @@ exports.getCategoriasTodas = function (req, res) {
         try {
             (async () => {
                 respuesta = await pool.query(`             
-                SELECT * 
+                SELECT *, roma.get_nombre_categoria_padre(categorias_id_padre) as categorias_padre_descrip
                 FROM roma.categorias  `)
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
@@ -82,7 +82,7 @@ exports.getCategoriasBusqueda = function (req, res) {
         try {
             (async () => {
                 respuesta = await pool.query(`             
-            SELECT *
+            SELECT *, roma.get_nombre_categoria_padre(categorias_id_padre) as categorias_padre_descrip
             FROM roma.categorias 
             WHERE (nombre::varchar ilike '%`+ req.params.texto_busqueda + `%'
                     OR descripcion::varchar ilike '%`+ req.params.texto_busqueda + `%'
