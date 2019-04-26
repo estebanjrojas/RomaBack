@@ -160,6 +160,41 @@ exports.getCaracteristicasProductos = function (req, res) {
 };
 
 
+exports.getCategoriasProductos = function (req, res) {
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+
+        try {
+            (async () => {
+                respuesta = await pool.query(`
+                SELECT cat.id as categorias_id, cat.nombre 
+                FROM roma.productos_categorias pc
+                JOIN roma.categorias cat ON pc.categorias_id = cat.id    
+                WHERE productos_id = `+ req.params.id + ` `)
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+    }
+};
+
+
 exports.insertProductoReturnId = function (req, res) {
 
     var pool = new Pool({
