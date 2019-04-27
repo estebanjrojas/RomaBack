@@ -14,8 +14,15 @@ exports.getProductosTodos = function (req, res) {
         try {
             (async () => {
                 respuesta = await pool.query(`             
-            SELECT *
-            FROM roma.productos `)
+            SELECT 
+                  p.*
+                , pc.*
+                , cat.nombre as nombre_categoria
+                , roma.get_imagen_principal_producto(p.id) as imagen
+            FROM roma.productos p
+            JOIN roma.productos_categorias pc ON p.id = pc.productos_id
+            JOIN roma.categorias cat ON pc.categorias_id = cat.id
+             `)
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -48,11 +55,18 @@ exports.getProductosBusqueda = function (req, res) {
         try {
             (async () => {
                 respuesta = await pool.query(`             
-            SELECT *
-            FROM roma.productos
-            WHERE (codigo::varchar ilike '%`+ req.params.texto_busqueda + `%'
-                    OR nombre ilike '%`+ req.params.texto_busqueda + `%'
+            SELECT 
+                p.*
+              , pc.*
+              , cat.nombre as nombre_categoria
+              , roma.get_imagen_principal_producto(p.id) as imagen
+            FROM roma.productos p
+            JOIN roma.productos_categorias pc ON p.id = pc.productos_id
+            JOIN roma.categorias cat ON pc.categorias_id = cat.id
+            WHERE (p.codigo::varchar ilike '%`+ req.params.texto_busqueda + `%'
+                    OR p.nombre ilike '%`+ req.params.texto_busqueda + `%'
                     OR descripcion ilike '%`+ req.params.texto_busqueda + `%'
+                    OR cat.nombre ilike '%`+ req.params.texto_busqueda + `%'
                     OR tipo_producto) ilike '%`+ req.params.texto_busqueda + `%')`
                 )
                     .then(resp => {
@@ -87,7 +101,7 @@ exports.getDatosProductos = function (req, res) {
         try {
             (async () => {
                 respuesta = await pool.query(`
-                SELECT * 
+                SELECT *, roma.get_imagen_principal_producto(pr.id) as imagen
                 FROM roma.productos pr
                 JOIN roma.precios_productos prp ON pr.id = prp.productos_id             
                 WHERE pr.id = `+ req.params.id + ` `)
@@ -146,6 +160,41 @@ exports.getCaracteristicasProductos = function (req, res) {
 };
 
 
+exports.getCategoriasProductos = function (req, res) {
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+
+        try {
+            (async () => {
+                respuesta = await pool.query(`
+                SELECT cat.id as categorias_id, cat.nombre 
+                FROM roma.productos_categorias pc
+                JOIN roma.categorias cat ON pc.categorias_id = cat.id    
+                WHERE productos_id = `+ req.params.id + ` `)
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+    }
+};
+
+
 exports.insertProductoReturnId = function (req, res) {
 
     var pool = new Pool({
@@ -155,7 +204,7 @@ exports.insertProductoReturnId = function (req, res) {
     (async () => {
         const client = await pool.connect()
         try {
-            let codigo = (req.body.codigo != undefined) ? req.body.codigo : `null`;
+            let codigo = (req.body.codigo != undefined) ?  `'` + req.body.codigo + `'` : `null`;
             let nombre = (req.body.nombre_producto != undefined) ? `'` + req.body.nombre_producto + `'` : `null`;
             let descripcion = (req.body.descripcion_producto != undefined) ? `'` + req.body.descripcion_producto + `'` : `null`;
             let descripcion_factura = (req.body.descripcion_factura != undefined) ? `'` + req.body.descripcion_factura + `'` : `null`;
@@ -244,6 +293,38 @@ exports.insertCaracteristicasProducto = function (req, res) {
         }
     })().catch(e => console.error(e.stack))
 };
+
+exports.insertCategoriasProducto = function (req, res) {
+
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
+
+    (async () => {
+        const client = await pool.connect()
+        try {
+            await client.query('BEGIN')
+
+            await client.query(`
+            INSERT INTO roma.productos_categorias(
+                  productos_id
+                , categorias_id)
+            VALUES(
+                  `+ req.body.productos_id + `
+                , `+ req.body.categorias_id + ` ); `)
+
+            await client.query('COMMIT')
+            res.status(200).send({ "mensaje": "Las Categorias se cargaron exitosamente" });
+        } catch (e) {
+            await client.query('ROLLBACK')
+            res.status(400).send({ "mensaje": "Ocurrio un error al cargar las Categorias" });
+            throw e
+        } finally {
+            client.release()
+        }
+    })().catch(e => console.error(e.stack))
+};
+
 
 exports.actualizarDatosProductos = function (req, res) {
     var pool = new Pool({
