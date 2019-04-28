@@ -14,4 +14,5 @@ router.route('/insertCategoriasProducto/').post(middleware.checkToken, Ctrl.inse
 router.route('/actualizarDatosProductos').put(Ctrl.actualizarDatosProductos);
 router.route('/eliminarCaracteristicasProductos/:productos_id').delete(middleware.checkToken, Ctrl.eliminarCaracteristicasProductos);
 router.route('/insertEmpleadoPersonaDomicilio/').post(middleware.checkToken, Ctrl.insertEmpleadoPersonaDomicilio);
+router.route('/getImagenesProductos/:id').get(middleware.checkToken, Ctrl.getImagenesProductos);
 module.exports = router;
