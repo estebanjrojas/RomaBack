@@ -540,3 +540,54 @@ exports.getImagenesProductos = function (req, res) {
         res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
     }
 };
+
+
+
+exports.getProductosPorCategoriaCampoBusqueda = function (req, res) {
+
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        try {
+            (async () => {
+                respuesta = await pool.query(`             
+                SELECT prod.id as productos_id
+                     , prod.codigo, prod.nombre, prod.descripcion, prod.descripcion_factura
+                     , prod.tipo_producto, gdt(7, prod.tipo_producto) as tipo_producto_descrip
+                     , prod.fecha_desde, prod.fecha_hasta
+                     , roma.get_imagen_principal_producto(prod.id) as imagen_principal
+                     , ppre.monto as precio
+                     , ppre.unidad as moneda
+                FROM roma.productos prod
+                LEFT JOIN roma.productos_categorias pcat ON prod.id = pcat.productos_id
+                LEFT JOIN roma.precios_productos ppre ON prod.id = ppre.productos_id AND now()::date between ppre.fecha_desde and coalesce(ppre.fecha_hasta, now())::date
+                WHERE (pcat.categorias_id = ${req.params.categorias_id} OR ${req.params.categorias_id} = 0)
+                AND ${req.params.campo_buscar}::varchar ilike '%${req.params.texto_buscar}%'
+                AND coalesce(prod.fecha_hasta, now())::date >= now()::date
+                GROUP BY prod.id, prod.codigo, prod.nombre, prod.descripcion, prod.descripcion_factura
+                , prod.tipo_producto, prod.fecha_desde, prod.fecha_hasta
+                , ppre.monto, ppre.unidad
+             `)
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+
+
+};
