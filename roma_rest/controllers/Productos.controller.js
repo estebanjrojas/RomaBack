@@ -20,7 +20,9 @@ exports.getProductosTodos = function (req, res) {
                 , pc.*
                 , cat.nombre as nombre_categoria
                 , roma.get_imagen_principal_producto(p.id) as imagen
+                , pp.monto
             FROM roma.productos p
+            JOIN roma.precios_productos pp ON p.id = pp.productos_id
             JOIN roma.productos_categorias pc ON p.id = pc.productos_id
             JOIN roma.categorias cat ON pc.categorias_id = cat.id
              `)
@@ -62,7 +64,9 @@ exports.getProductosBusqueda = function (req, res) {
               , pc.*
               , cat.nombre as nombre_categoria
               , roma.get_imagen_principal_producto(p.id) as imagen
+              , pp.monto
             FROM roma.productos p
+            JOIN roma.precios_productos pp ON p.id = pp.productos_id
             JOIN roma.productos_categorias pc ON p.id = pc.productos_id
             JOIN roma.categorias cat ON pc.categorias_id = cat.id
             WHERE (p.codigo::varchar ilike '%`+ req.params.texto_busqueda + `%'
