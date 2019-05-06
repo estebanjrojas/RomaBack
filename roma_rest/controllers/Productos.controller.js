@@ -20,9 +20,7 @@ exports.getProductosTodos = function (req, res) {
                 , pc.*
                 , cat.nombre as nombre_categoria
                 , roma.get_imagen_principal_producto(p.id) as imagen
-                , pp.monto
             FROM roma.productos p
-            JOIN roma.precios_productos pp ON p.id = pp.productos_id
             JOIN roma.productos_categorias pc ON p.id = pc.productos_id
             JOIN roma.categorias cat ON pc.categorias_id = cat.id
              `)
@@ -64,9 +62,7 @@ exports.getProductosBusqueda = function (req, res) {
               , pc.*
               , cat.nombre as nombre_categoria
               , roma.get_imagen_principal_producto(p.id) as imagen
-              , pp.monto
             FROM roma.productos p
-            JOIN roma.precios_productos pp ON p.id = pp.productos_id
             JOIN roma.productos_categorias pc ON p.id = pc.productos_id
             JOIN roma.categorias cat ON pc.categorias_id = cat.id
             WHERE (p.codigo::varchar ilike '%`+ req.params.texto_busqueda + `%'
@@ -201,6 +197,74 @@ exports.getCategoriasProductos = function (req, res) {
     }
 };
 
+exports.getUltimoPrecioValido = function (req, res) {
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+
+        try {
+            (async () => {
+                respuesta = await pool.query(`
+                SELECT *
+                FROM roma.precios_productos    
+                WHERE productos_id = `+ req.params.id + ` AND now()::date 
+                    BETWEEN fecha_desde AND coalesce(fecha_hasta, now())::date `)
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+    }
+};
+
+
+exports.getHistorialPrecios = function (req, res) {
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+
+        try {
+            (async () => {
+                respuesta = await pool.query(`
+                SELECT *
+                FROM roma.precios_productos    
+                WHERE productos_id = `+ req.params.id + ` `)
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+    }
+};
+
 
 exports.insertProductoReturnId = function (req, res) {
 
@@ -263,6 +327,46 @@ exports.insertProductoReturnId = function (req, res) {
         }
     })().catch(e => console.error(e.stack))
 };
+
+
+exports.insertNuevoPrecioProducto = function (req, res) {
+
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
+
+    (async () => {
+        const client = await pool.connect()
+        try {
+            await client.query('BEGIN')
+
+
+            const { precios_productos } = await client.query(`
+            INSERT INTO roma.precios_productos(
+                  monto
+                , fecha_desde
+                , productos_id
+                )
+            VALUES(
+                  `+ req.body.precio + `
+                , now()::date + INTERVAL '1 DAY'
+                , `+ req.body.productos_id + `
+                )`)
+
+
+            await client.query('COMMIT')
+            res.status(200).send({ "mensaje": "El Precio se cargo exitosamente" });
+        } catch (e) {
+            await client.query('ROLLBACK')
+            res.status(400).send({ "mensaje": "Ocurrio un error al cargar el nuevo precio" });
+            throw e
+        } finally {
+            client.release()
+        }
+    })().catch(e => console.error(e.stack))
+};
+
+
 
 exports.insertCaracteristicasProducto = function (req, res) {
 
@@ -381,6 +485,34 @@ exports.actualizarDatosProductos = function (req, res) {
     })().catch(e => console.error(e.stack))
 };
 
+
+
+exports.actualizarFechaHastaPrecio = function (req, res) {
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
+
+    (async () => {
+        const client = await pool.connect()
+        try {
+            await client.query('BEGIN')
+            const { precios_productos } = await client.query(`
+            UPDATE roma.precios_productos
+            SET 
+                fecha_hasta= now()::date
+            WHERE productos_id = '`+ req.body.productos_id + `'`)
+
+            await client.query('COMMIT')
+            res.status(200).send({ "mensaje": "La fecha de cese fue actualizada exitosamente" });
+        } catch (e) {
+            await client.query('ROLLBACK')
+            res.status(400).send({ "mensaje": "Ocurrio un error actualizar el precio" });
+            throw e
+        } finally {
+            client.release()
+        }
+    })().catch(e => console.error(e.stack))
+};
 
 
 
