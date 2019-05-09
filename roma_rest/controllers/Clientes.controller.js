@@ -178,10 +178,19 @@ exports.getClientesWhere = function (req, res) {
         try {
             (async () => {
                 respuesta = await pool.query(`             
-            SELECT *
-            FROM roma.clientes cli
-            JOIN personas p ON cli.personas_id = p.id 
-            WHERE ${req.params.campo_busqueda}::varchar ilike '%${req.params.texto_buscar}%'`
+                SELECT cli.*, p.*, gdt(1, p.tipo_doc) as tipo_doc_descrip
+                    , dm.calle, dm.numero as domicilio_numero
+                    , dm.piso, dm.depto, dm.manzana, dm.lote, dm.block, dm.barrio, dm.ciudades_id
+                    , cl.codigo_postal, cl.nombre as ciudad_nombre
+                    , pv.id as provincias_id, pv.nombre as provincias_nombre
+                    , pc.id as paices_id, pc.nombre as pais_nombre
+                FROM roma.clientes cli
+                JOIN personas p ON cli.personas_id = p.id
+                LEFT JOIN domicilios dm ON p.domicilios_id = dm.id
+                LEFT JOIN ciudades cl ON dm.ciudades_id = cl.id
+                LEFT JOIN provincias pv ON cl.provincias_id = pv.id
+                LEFT JOIN paices pc ON pv.paices_id = pc.id 
+                WHERE ${req.params.campo_busqueda}::varchar ilike '%${req.params.texto_buscar}%'`
                 )
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
@@ -199,7 +208,7 @@ exports.getClientesWhere = function (req, res) {
         }
 
     } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
     }
 
 };
