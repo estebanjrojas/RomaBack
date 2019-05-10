@@ -94,8 +94,12 @@ exports.getDatosUsuario = function (req, res) {
                     , prs.apellido
                     , prs.nombre
                     , prs.email
+                    , prs.nro_doc
                     , emp.legajo
                     , emp.descripcion as descripcion_empleado
+                    , emp.id as empleados_id
+                    , emp.empresas_id
+	                , emp.fecha_ingreso
                 FROM seguridad.usuarios usr
                 JOIN public.personas prs ON usr.personas_id = prs.id
                 JOIN roma.empleados emp ON emp.personas_id = prs.id
