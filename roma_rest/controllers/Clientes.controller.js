@@ -178,7 +178,8 @@ exports.getClientesWhere = function (req, res) {
         try {
             (async () => {
                 respuesta = await pool.query(`             
-                SELECT cli.*, p.*, gdt(1, p.tipo_doc) as tipo_doc_descrip
+                SELECT cli.id as clientes_id, cli.fecha_alta
+                    , p.*, gdt(1, p.tipo_doc) as tipo_doc_descrip
                     , dm.calle, dm.numero as domicilio_numero
                     , dm.piso, dm.depto, dm.manzana, dm.lote, dm.block, dm.barrio, dm.ciudades_id
                     , cl.codigo_postal, cl.nombre as ciudad_nombre
