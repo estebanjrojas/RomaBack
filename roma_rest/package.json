@@ -21,6 +21,7 @@
     "method-override": "^3.0.0",
     "nodemon": "^1.18.4",
     "pg": "*",
-    "soap": "^0.25.0"
+    "soap": "^0.25.0",
+    "swagger-ui-express": "^4.0.2"
   }
 }
