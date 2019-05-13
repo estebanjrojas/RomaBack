@@ -5,6 +5,108 @@ const connectionString = configuracion.bd;
 
 
 
+
+exports.getVentasTodas = function (req, res) {
+
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        try {
+            (async () => {
+                respuesta = await pool.query(`             
+                SELECT 
+                      v.id as ventas_id
+                    , cli.id as clientes_id
+                    , per.id as personas_id
+                    , v.fecha
+                    , per.nombre as nombre_cliente
+                    , per.apellido as apellido_cliente
+                    , per2.nombre as nombre_vendedor
+                    , per2.apellido as apellido_vendedor
+                    , v.monto_total as monto
+                FROM roma.ventas v 
+                JOIN roma.clientes cli ON v.clientes_id = cli.id
+                JOIN personas per ON cli.personas_id = per.id
+                JOIN roma.empleados emp ON v.empleados_id = emp.id
+                JOIN personas per2 ON emp.personas_id = per2.id `)
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+
+
+};
+
+exports.getVentasBusqueda = function (req, res) {
+
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        try {
+            (async () => {
+                respuesta = await pool.query(`             
+                SELECT 
+                      v.id as ventas_id
+                    , cli.id as clientes_id
+                    , per.id as personas_id
+                    , v.fecha
+                    , per.nombre as nombre_cliente
+                    , per.apellido as apellido_cliente
+                    , per2.nombre as nombre_vendedor
+                    , per2.apellido as apellido_vendedor
+                    , v.monto_total as monto
+                FROM roma.ventas v 
+                JOIN roma.clientes cli ON v.clientes_id = cli.id
+                JOIN personas per ON cli.personas_id = per.id
+                JOIN roma.empleados emp ON v.empleados_id = emp.id
+                JOIN personas per2 ON emp.personas_id = per2.id
+                    WHERE (per.nombre::varchar ilike '%`+ req.params.texto_busqueda + `%'
+                            OR per.apellido::varchar ilike '%`+ req.params.texto_busqueda + `%'
+                            OR per2.nombre::varchar ilike '%`+ req.params.texto_busqueda + `%'
+                            OR per2.apellido::varchar ilike '%`+ req.params.texto_busqueda + `%'
+                            OR v.monto_total::varchar ilike '%`+ req.params.texto_busqueda + `%')`
+                        )
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+
+};
+
+
+
 exports.insertVentaReturningFactura = function (req, res) {
 
     var pool = new Pool({
