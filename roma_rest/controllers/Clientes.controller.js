@@ -138,7 +138,7 @@ exports.getClientesBusqueda = function (req, res) {
         try {
             (async () => {
                 respuesta = await pool.query(`             
-            SELECT *
+            SELECT cli.id as clientes_id, *
             FROM roma.clientes cli
             JOIN personas p ON cli.personas_id = p.id 
             WHERE (p.nro_doc::varchar ilike '%`+ req.params.texto_busqueda + `%'
@@ -231,9 +231,13 @@ exports.getDatosClientePorId = function (req, res) {
                     , cli.personas_id
                     , ps.*
                     , dom.*
+                    , ciu.nombre as ciudad_nombre
+                    , prov.id as provincias_id
                 FROM roma.clientes cli
                 JOIN personas ps ON cli.personas_id = ps.id
                 LEFT JOIN domicilios dom ON ps.domicilios_id = dom.id
+                JOIN ciudades ciu ON dom.ciudades_id = ciu.id
+				JOIN provincias prov ON ciu.provincias_id = prov.id
                 WHERE cli.id =  `+req.params.id)
                 .then(resp => {
                     console.log(JSON.stringify(resp.rows));
