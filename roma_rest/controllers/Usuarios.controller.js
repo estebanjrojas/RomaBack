@@ -76,7 +76,67 @@ exports.solicitarAccesoUsuario = async function (req, res) {
     }
 };
 
+exports.validarPassVieja = async function (req, res) {
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
 
+    (async () => {
+        const client = await pool.connect()
+        try {
+
+            await client.query('BEGIN')
+            const { rows } = await client.query(`
+
+            SELECT count(*)>0 as permitir_acceso
+            FROM seguridad.usuarios 
+            WHERE pwd_usr = md5('`+ req.params.pswrd + `')
+                AND nomb_usr = '`+ req.params.nomb_usr + `'
+                AND habilitado = true
+                AND coalesce(fecha_baja, now())>=now();
+                `);
+
+            await client.query('COMMIT')
+            res.status(200).send({ "mensaje": "El password ingresado es correcto", "permitir_acceso": rows[0].permitir_acceso });
+        } catch (e) {
+            await client.query('ROLLBACK')
+            res.status(400).send({ "mensaje": "El password ingresado no es correcto" });
+            throw e
+        } finally {
+            client.release()
+        }
+    })().catch(e => console.error(e.stack))
+};
+
+
+
+exports.cambiarPassword = function (req, res) {
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
+
+    (async () => {
+        const client = await pool.connect()
+        try {
+
+            await client.query('BEGIN')
+            const { rows } = await client.query(`
+            UPDATE seguridad.usuarios
+            SET 
+                pwd_usr= md5('`+ req.body.password + `')
+            WHERE nomb_usr ='`+ req.body.usuario + `' returning id`)
+
+            await client.query('COMMIT')
+            res.status(200).send({ "mensaje": "El password fue actualizado exitosamente", "id": rows[0].id });
+        } catch (e) {
+            await client.query('ROLLBACK')
+            res.status(400).send({ "mensaje": "Ocurrio un error al actualizar el password" });
+            throw e
+        } finally {
+            client.release()
+        }
+    })().catch(e => console.error(e.stack))
+};
 
 exports.getDatosUsuario = function (req, res) {
 
