@@ -2,7 +2,7 @@ const configuracion = require("../utillities/config");
 let jwt = require('jsonwebtoken');
 var { Pool } = require('pg');
 const connectionString = configuracion.bd;
-
+const qVentas = require("./query/Ventas.js");
 
 
 
@@ -15,29 +15,14 @@ exports.getVentasTodas = function (req, res) {
         });
         try {
             (async () => {
-                respuesta = await pool.query(`             
-                SELECT 
-                      v.id as ventas_id
-                    , cli.id as clientes_id
-                    , per.id as personas_id
-                    , v.fecha
-                    , per.nombre as nombre_cliente
-                    , per.apellido as apellido_cliente
-                    , per2.nombre as nombre_vendedor
-                    , per2.apellido as apellido_vendedor
-                    , v.monto_total as monto
-                FROM roma.ventas v 
-                JOIN roma.clientes cli ON v.clientes_id = cli.id
-                JOIN personas per ON cli.personas_id = per.id
-                JOIN roma.empleados emp ON v.empleados_id = emp.id
-                JOIN personas per2 ON emp.personas_id = per2.id `)
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
+                respuesta = await pool.query(qVentas.getVentasTodas)
+                .then(resp => {
+                    console.log(JSON.stringify(resp.rows));
+                    res.status(200).send(JSON.stringify(resp.rows));
+                }).catch(err => {
+                    console.error("ERROR", err.stack);
+                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                });
                 return respuesta;
 
             })()
@@ -62,28 +47,7 @@ exports.getVentasBusqueda = function (req, res) {
         });
         try {
             (async () => {
-                respuesta = await pool.query(`             
-                SELECT 
-                      v.id as ventas_id
-                    , cli.id as clientes_id
-                    , per.id as personas_id
-                    , v.fecha
-                    , per.nombre as nombre_cliente
-                    , per.apellido as apellido_cliente
-                    , per2.nombre as nombre_vendedor
-                    , per2.apellido as apellido_vendedor
-                    , v.monto_total as monto
-                FROM roma.ventas v 
-                JOIN roma.clientes cli ON v.clientes_id = cli.id
-                JOIN personas per ON cli.personas_id = per.id
-                JOIN roma.empleados emp ON v.empleados_id = emp.id
-                JOIN personas per2 ON emp.personas_id = per2.id
-                    WHERE (per.nombre::varchar ilike '%`+ req.params.texto_busqueda + `%'
-                            OR per.apellido::varchar ilike '%`+ req.params.texto_busqueda + `%'
-                            OR per2.nombre::varchar ilike '%`+ req.params.texto_busqueda + `%'
-                            OR per2.apellido::varchar ilike '%`+ req.params.texto_busqueda + `%'
-                            OR v.monto_total::varchar ilike '%`+ req.params.texto_busqueda + `%')`
-                        )
+                respuesta = await pool.query(qVentas.getVentasBusqueda, [req.params.texto_busqueda])
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -131,20 +95,14 @@ exports.insertVentaReturningFactura = function (req, res) {
                     console.log('Ocurrio un error iniciando la transaccion: '+err_transaccion.stack);
                 }
                 //Inicio la Venta
-                client.query(`
-                INSERT INTO roma.ventas(fecha, monto_total, empresas_id, empleados_id, clientes_id)
-                VALUES(now()::date, ${monto_total}, ${empresas_id}, ${empleados_id}, ${clientes_id})
-                RETURNING id;`, (err_vta, res_vta)=>{
+                client.query(qVentas.insertReturnId, [monto_total, empresas_id, empleados_id, clientes_id], (err_vta, res_vta)=>{
                     if(err_vta){
                         console.log('Ocurrio un error cargar la venta: '+err_vta.stack);
                     }
                     ventas_id  = res_vta.rows[0].id;
                     console.log({"ventas":ventas_id});
                     for(let i=0; i<detalles.length; i++){
-                        client.query(`
-                        INSERT INTO roma.ventas_detalle(cantidad, monto, descuento, subtotal, ventas_id, productos_id)
-                        VALUES(${detalles[i].cantidad}, ${detalles[i].producto.precio_actual}, ${detalles[i].descuento}, ${detalles[i].subtotal}, ${ventas_id}, ${detalles[i].producto.productos_id})
-                        RETURNING id;`, (err_dvta, res_dvta)=>{
+                        client.query(qVentas.insertDetalleReturnId, [detalles[i].cantidad, detalles[i].producto.precio_actual, detalles[i].descuento, detalles[i].subtotal, ventas_id, detalles[i].producto.productos_id], (err_dvta, res_dvta)=>{
                             if(err_dvta){
                                 console.log('Ocurrio un error cargar el detalle de la venta: '+err_dvta.stack);
                             }

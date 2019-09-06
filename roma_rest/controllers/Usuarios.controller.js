@@ -3,6 +3,7 @@ const configuracion = require("../utillities/config");
 let jwt = require('jsonwebtoken');
 var { Pool } = require('pg');
 const connectionString = configuracion.bd;
+const qUsuarios = require("./query/Usuarios.js");
 
 async function generarTokenString(usuario, identificador) {
     try {
@@ -11,9 +12,7 @@ async function generarTokenString(usuario, identificador) {
         });
         var token_generado = '';
         const client = await pool.connect();
-        await client.query(`
-            SELECT seguridad.generar_token('`+ usuario + `', '` + identificador + `') as token_acceso;`
-            , ((err, resp) => {
+        await client.query(qUsuarios.generarTokenString, [usuario, identificador], ((err, resp) => {
                 if (err) console.log(err);
                 token_generado = resp.rows[0].token_acceso;
                 console.log("Token Generado en BD: " + token_generado);
@@ -47,14 +46,7 @@ exports.solicitarAccesoUsuario = async function (req, res) {
             connectionString: connectionString,
         });
 
-        let acceso = await pool.query(`
-            SELECT count(*)>0 as permitir_acceso
-            FROM seguridad.usuarios 
-            WHERE pwd_usr = md5('`+ req.params.pswrd + `')
-                AND nomb_usr = '`+ req.params.nomb_usr + `'
-                AND habilitado = true
-                AND coalesce(fecha_baja, now())>=now();
-                `);
+        let acceso = await pool.query(qUsuarios.solicitarAccesoUsuario, [req.params.pswrd, req.params.nomb_usr]);
         console.log(acceso.rows[0].permitir_acceso);
 
         if (acceso.rows[0].permitir_acceso) {
@@ -86,15 +78,7 @@ exports.validarPassVieja = async function (req, res) {
         try {
 
             await client.query('BEGIN')
-            const { rows } = await client.query(`
-
-            SELECT count(*)>0 as permitir_acceso
-            FROM seguridad.usuarios 
-            WHERE pwd_usr = md5('`+ req.params.pswrd + `')
-                AND nomb_usr = '`+ req.params.nomb_usr + `'
-                AND habilitado = true
-                AND coalesce(fecha_baja, now())>=now();
-                `);
+            const { rows } = await client.query(qUsuarios.solicitarAccesoUsuario, [req.params.pswrd, req.params.nomb_usr]);
 
             await client.query('COMMIT')
             res.status(200).send({ "mensaje": "El password ingresado es correcto", "permitir_acceso": rows[0].permitir_acceso });
@@ -120,11 +104,7 @@ exports.cambiarPassword = function (req, res) {
         try {
 
             await client.query('BEGIN')
-            const { rows } = await client.query(`
-            UPDATE seguridad.usuarios
-            SET 
-                pwd_usr= md5('`+ req.body.password + `')
-            WHERE nomb_usr ='`+ req.body.usuario + `' returning id`)
+            const { rows } = await client.query(qUsuarios.cambiarPassword, [req.body.password, req.body.usuario])
 
             await client.query('COMMIT')
             res.status(200).send({ "mensaje": "El password fue actualizado exitosamente", "id": rows[0].id });
@@ -147,23 +127,7 @@ exports.getDatosUsuario = function (req, res) {
         });
         try {
             (async () => {
-                respuesta = await pool.query(`             
-                SELECT usr.nomb_usr as usuario
-                    , usr.desc_usr as descripcion_usuario
-                    , usr.debug
-                    , prs.apellido
-                    , prs.nombre
-                    , prs.email
-                    , prs.nro_doc
-                    , emp.legajo
-                    , emp.descripcion as descripcion_empleado
-                    , emp.id as empleados_id
-                    , emp.empresas_id
-	                , emp.fecha_ingreso
-                FROM seguridad.usuarios usr
-                JOIN public.personas prs ON usr.personas_id = prs.id
-                JOIN roma.empleados emp ON emp.personas_id = prs.id
-                WHERE usr.nomb_usr =  '`+ req.params.usuario + `';`)
+                respuesta = await pool.query(qUsuarios.getDatosUsuario, [req.params.usuario])
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -197,10 +161,7 @@ exports.getUsuariosTodos = function (req, res) {
         });
         try {
             (async () => {
-                respuesta = await pool.query(`             
-                SELECT * 
-                FROM seguridad.usuarios usr
-                JOIN public.personas p ON usr.personas_id = p.id `)
+                respuesta = await pool.query(qUsuarios.getUsuariosTodos)
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -217,7 +178,7 @@ exports.getUsuariosTodos = function (req, res) {
         }
 
     } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
     }
 
 
@@ -232,16 +193,7 @@ exports.getUsuariosBusqueda = function (req, res) {
         });
         try {
             (async () => {
-                respuesta = await pool.query(`             
-            SELECT *
-            FROM seguridad.usuarios usr
-            JOIN public.personas p ON usr.personas_id = p.id
-            WHERE (p.nombre::varchar ilike '%`+ req.params.texto_busqueda + `%'
-                    OR p.apellido::varchar ilike '%`+ req.params.texto_busqueda + `%'
-                    OR usr.nomb_usr ilike '%`+ req.params.texto_busqueda + `%'
-                    OR usr.desc_usr ilike '%`+ req.params.texto_busqueda + `%'
-                    OR p.nro_doc::varchar ilike '%`+ req.params.texto_busqueda + `%')`
-                )
+                respuesta = await pool.query(qUsuarios.getUsuariosBusqueda, [req.params.texto_busqueda])
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -288,21 +240,7 @@ exports.insertUsuarioReturnId = function (req, res) {
             console.log("Personas_id:" + personas_id);
             await client.query('BEGIN')
 
-            const { rows } = await client.query(`
-            INSERT INTO seguridad.usuarios (nomb_usr
-                , pwd_usr
-                , usuario
-                , fecha_mov
-                , debug
-                , personas_id
-            )
-            VALUES(`+ nomb_usr + `
-                , md5('12345')
-                , `+ usuario + `
-                , now()::date
-                , `+ debug + `
-                , `+ personas_id + `
-                ) RETURNING id; `)
+            const { rows } = await client.query(qUsuarios.insertUsuarioReturnId, [nomb_usr, usuario, debug, personas_id]); 
 
             await client.query('COMMIT')
             res.status(200).send({ "mensaje": "El USUARIO fue guardado exitosamente", "id": rows[0].id });
@@ -331,13 +269,7 @@ exports.insertPerfilesAsignados = function (req, res) {
 
             await client.query('BEGIN')
 
-            const { rows } = await client.query(`
-            INSERT INTO seguridad.usuarios_perfiles(
-                  usuarios_id
-                , perfiles_id)
-            VALUES(`+ usuarios_id + `
-                , `+ perfiles_id + `
-                )  RETURNING id`)
+            const { rows } = await client.query(qUsuarios.insertPerfilesAsignados, [usuarios_id, perfiles_id])
 
             await client.query('COMMIT')
             res.status(200).send({ "mensaje": "El Perfil fue guardado exitosamente", "id": rows[0].id });
@@ -350,9 +282,6 @@ exports.insertPerfilesAsignados = function (req, res) {
         }
     })().catch(e => console.error(e.stack))
 };
-
-
-
 
 
 exports.actualizarDatosUsuarios = function (req, res) {
@@ -415,26 +344,7 @@ exports.getDatosUsuariosCargados = function (req, res) {
         console.log("ID_USUARIO: " + req.params.id_usuario);
         try {
             (async () => {
-                respuesta = await pool.query(`
-                SELECT 
-                      em.id as empleados_id
-                    , em.personas_id
-                    , em.legajo
-                    , em.fecha_ingreso
-                    , em.descripcion
-                    , gdt(3, em.oficina) as oficina
-                    , ep.id as empresas_id
-                    , ep.razon_social as empresa_razon_social
-                    , ep.nombre_fantasia as empresa_nombre_fantasia
-                    , ps.*
-                    , ps.nombre || ' ' || ps.apellido as nombre_completo
-                    , usr.nomb_usr
-                    , usr.id as usuario_id
-                FROM roma.empleados em
-                JOIN personas ps ON em.personas_id = ps.id
-                JOIN roma.empresas ep ON em.empresas_id = ep.id
-                JOIN seguridad.usuarios usr ON ps.id = usr.personas_id          
-                WHERE em.id = `+ req.params.id + ` `)
+                respuesta = await pool.query(qUsuarios.getDatosUsuariosCargados, [req.params.id])
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -465,17 +375,7 @@ exports.getPerfilesAsignados = function (req, res) {
         console.log("ID_USUARIO: " + req.params.id_usuario);
         try {
             (async () => {
-                respuesta = await pool.query(`
-                SELECT
-                      per.id
-                    , per.nombre
-                    , per.descripcion 
-                FROM seguridad.usuarios_perfiles up 
-                JOIN seguridad.perfiles per ON up.perfiles_id = per.id
-                JOIN seguridad.usuarios u ON up.usuarios_id = u.id
-                JOIN personas p ON u.personas_id = p.id
-                JOIN roma.empleados emp ON p.id = emp.personas_id
-                WHERE emp.id = `+ req.params.id + ` `)
+                respuesta = await pool.query(qUsuarios.getPerfilesAsignados, [req.params.id])
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -504,19 +404,7 @@ exports.getPerfilesSinAsignar = function (req, res) {
         });
         try {
             (async () => {
-                respuesta = await pool.query(`
-                SELECT * 
-                FROM seguridad.perfiles 
-                WHERE id not in (
-                    SELECT 
-                        perf.id 
-                    FROM seguridad.perfiles perf
-                    JOIN seguridad.usuarios_perfiles up ON perf.id = up.perfiles_id
-                    JOIN seguridad.usuarios usr ON up.usuarios_id = usr.id
-                    JOIN personas p ON usr.personas_id = p.id
-                    JOIN roma.empleados emp ON p.id = emp.personas_id
-                    WHERE emp.id in (`+ req.params.id + `)
-                )`)
+                respuesta = await pool.query(qUsuarios.getPerfilesSinAsignar, [req.params.id])
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -550,9 +438,7 @@ exports.deletePerfiles = function (req, res) {
         try {
             await client.query('BEGIN')
 
-            await client.query(`
-            DELETE FROM seguridad.usuarios_perfiles 
-            WHERE usuarios_id = `+ req.params.id_usuario + ``)
+            await client.query(qUsuarios.deletePerfiles, [req.params.id_usuario])
 
             await client.query('COMMIT')
             res.status(200).send({ "mensaje": "Las imagenes se eliminaron exitosamente" });
