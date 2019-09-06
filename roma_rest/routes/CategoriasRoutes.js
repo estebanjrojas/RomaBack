@@ -6,4 +6,5 @@ const middleware = require("../utillities/jwtValidaciones");
 router.route('/obtenerJSONTodasCategorias/').get(middleware.checkToken, Ctrl.obtenerJSONTodasCategorias);
 router.route('/getCategoriasTodas/').get(middleware.checkToken, Ctrl.getCategoriasTodas);
 router.route('/getCategoriasBusqueda/:texto_busqueda').get(middleware.checkToken, Ctrl.getCategoriasBusqueda);
+router.route('/categorias/insert/').post(middleware.checkToken, Ctrl.insert);
 module.exports = router;
