@@ -405,6 +405,34 @@ exports.insertCaracteristicasProducto = function (req, res) {
     })().catch(e => console.error(e.stack))
 };
 
+
+exports.eliminarCategoriasProductos = function (req, res) {
+
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
+
+    (async () => {
+        const client = await pool.connect()
+        try {
+            await client.query('BEGIN')
+
+            await client.query(`
+            DELETE FROM roma.productos_categorias 
+            WHERE productos_id = `+ req.params.productos_id + ``)
+
+            await client.query('COMMIT')
+            res.status(200).send({ "mensaje": "Las imagenes se eliminaron exitosamente" });
+        } catch (e) {
+            await client.query('ROLLBACK')
+            res.status(400).send({ "mensaje": "Ocurrio un error al cargar la imagen" });
+            throw e
+        } finally {
+            client.release()
+        }
+    })().catch(e => console.error(e.stack))
+};
+
 exports.insertCategoriasProducto = function (req, res) {
 
     var pool = new Pool({
@@ -435,6 +463,70 @@ exports.insertCategoriasProducto = function (req, res) {
         }
     })().catch(e => console.error(e.stack))
 };
+
+
+exports.eliminarImagenesProductos = function (req, res) {
+
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
+
+    (async () => {
+        const client = await pool.connect()
+        try {
+            await client.query('BEGIN')
+
+            await client.query(`
+            DELETE FROM roma.productos_imagenes 
+            WHERE productos_id = `+ req.params.productos_id + ``)
+
+            await client.query('COMMIT')
+            res.status(200).send({ "mensaje": "Las imagenes se eliminaron exitosamente" });
+        } catch (e) {
+            await client.query('ROLLBACK')
+            res.status(400).send({ "mensaje": "Ocurrio un error al cargar la imagen" });
+            throw e
+        } finally {
+            client.release()
+        }
+    })().catch(e => console.error(e.stack))
+};
+
+exports.cargarImagenProducto = function (req, res) {
+
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
+
+    (async () => {
+        const client = await pool.connect()
+        try {
+            await client.query('BEGIN')
+
+            /*await client.query(`
+            DELETE FROM flores_avisos.salas_fallecidos_fotos 
+            WHERE salas_fallecidos_id = `+ req.body.salas_fallecidos_id + ``)
+            */
+            await client.query(`
+            INSERT INTO roma.productos_imagenes(productos_id
+                , imagen, fecha_carga, principal)
+            VALUES(`+ req.body.productos_id + `
+                , '`+ req.body.imagen + `', now(), ` + req.body.predeterminada + `); `)
+
+            await client.query('COMMIT')
+            res.status(200).send({ "mensaje": "La imagen se cargo exitosamente" });
+        } catch (e) {
+            await client.query('ROLLBACK')
+            res.status(400).send({ "mensaje": "Ocurrio un error al cargar la imagen" });
+            throw e
+        } finally {
+            client.release()
+        }
+    })().catch(e => console.error(e.stack))
+};
+
+
+
 
 
 exports.actualizarDatosProductos = function (req, res) {
@@ -477,7 +569,7 @@ exports.actualizarDatosProductos = function (req, res) {
             res.status(200).send({ "mensaje": "El Producto fue actualizado exitosamente", "id": rows[0].id });
         } catch (e) {
             await client.query('ROLLBACK')
-            res.status(400).send({ "mensaje": "Ocurrio un error actualizar al fallecido" });
+            res.status(400).send({ "mensaje": "Ocurrio un error actualizar el producto" });
             throw e
         } finally {
             client.release()
