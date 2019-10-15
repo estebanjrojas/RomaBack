@@ -20,3 +20,8 @@ exports.insert = `
 INSERT INTO roma.categorias(nombre, descripcion, categorias_id_padre)
 VALUES($1, $2, $3) RETURNING id;
 `;
+
+exports.update = `
+UPDATE roma.categorias SET nombre = $2, descripcion = $3, categorias_id_padre = $4
+WHERE id = $1;
+`;

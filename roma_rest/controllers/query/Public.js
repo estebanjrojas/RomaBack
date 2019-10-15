@@ -1,0 +1,1 @@
+exports.selectAllCiudades = `SELECT * FROM public.ciudades;`;

@@ -2,6 +2,7 @@
 const configuracion = require("../utillities/config");
 var { Pool } = require('pg');
 const connectionString = configuracion.bd;
+const qTabgral = require('./query/Tabgral.js');
 
 exports.selectTabgralByNroTab = function (req, res) {
     try{
@@ -12,7 +13,7 @@ exports.selectTabgralByNroTab = function (req, res) {
 
         try{
             (async ()=>{
-                respuesta = await pool.query(`SELECT * FROM public.tabgral WHERE nro_tab = `+ req.params.nro_tab + ` ORDER BY descrip;`)
+                respuesta = await pool.query(qTabgral.selectTabgralByNroTab, [req.params.nro_tab])
                 .then(resp => {
                     console.log(JSON.stringify(resp.rows));
                     res.status(200).send(JSON.stringify(resp.rows));
@@ -31,6 +32,6 @@ exports.selectTabgralByNroTab = function (req, res) {
 
     }catch(err)
     {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
     }
 };
