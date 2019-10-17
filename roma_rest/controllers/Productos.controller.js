@@ -674,8 +674,8 @@ exports.insertProductoReturnId = function (req, res) {
                 , productos_id
                 )
             VALUES(
-                  `+ req.body.precio + `
-                , `+ req.body.unidad + `
+                  ${req.body.precio}
+                , ${req.body.unidad}
                 , now()::date
                 , `+ rows[0].id + `
                 )`)
@@ -742,19 +742,17 @@ exports.insertCaracteristicasProducto = function (req, res) {
         const client = await pool.connect()
         try {
             await client.query('BEGIN')
-
+            console.log(req.body);
             await client.query(`
             INSERT INTO roma.productos_caracteristicas(
                   nombre
                 , descripcion
-                , unidad_medida
                 , valor
                 , productos_id)
             VALUES(
                   '`+ req.body.nombre + `'
                 , '`+ req.body.descripcion + `'
-                , `+ req.body.unidad_medida + `
-                , `+ req.body.valor + `
+                , '`+ req.body.valor + `'
                 , `+ req.body.productos_id + `); `)
 
             await client.query('COMMIT')
