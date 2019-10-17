@@ -2,6 +2,7 @@
 const configuracion = require("../utillities/config");
 var { Pool } = require('pg');
 const connectionString = configuracion.bd;
+const qPublic = require('./query/Public.js');
 
 exports.selectAllCiudades = function (req, res) {
     try{
@@ -12,7 +13,7 @@ exports.selectAllCiudades = function (req, res) {
 
         try{
             (async ()=>{
-                respuesta = await pool.query(`SELECT * FROM public.ciudades;`)
+                respuesta = await pool.query(qPublic.selectAllCiudades)
                 .then(resp => {
                     console.log(JSON.stringify(resp.rows));
                     res.status(200).send(JSON.stringify(resp.rows));
@@ -31,6 +32,6 @@ exports.selectAllCiudades = function (req, res) {
 
     }catch(err)
     {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
     }
 };

@@ -2,6 +2,7 @@
 const configuracion = require("../utillities/config");
 var { Pool } = require('pg');
 const connectionString = configuracion.bd;
+const qProvincias = require('./query/Provincias.js');
 
 
 exports.getProvinciasPorPais = function (req, res) {
@@ -13,8 +14,12 @@ exports.getProvinciasPorPais = function (req, res) {
         });
         try{
             (async ()=>{
+<<<<<<< HEAD
                 respuesta = await pool.query(`             
             SELECT * FROM provincias WHERE paises_id =  `+req.params.paises_id)
+=======
+                respuesta = await pool.query(qProvincias.getProvinciasPorPais, [req.params.paices_id])
+>>>>>>> 36b259d4715c52a8daa445585437fb8e68055ba6
                 .then(resp => {
                     console.log(JSON.stringify(resp.rows));
                     res.status(200).send(JSON.stringify(resp.rows));
@@ -32,6 +37,6 @@ exports.getProvinciasPorPais = function (req, res) {
 
     }catch(err)
     {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
     }
 };

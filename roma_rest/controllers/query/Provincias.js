@@ -1,0 +1,1 @@
+exports.getProvinciasPorPais = ` SELECT * FROM provincias WHERE paices_id = $1`;
