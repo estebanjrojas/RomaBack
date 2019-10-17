@@ -3,95 +3,9 @@ const configuracion = require("../utillities/config");
 var { Pool } = require('pg');
 const connectionString = configuracion.bd;
 
-exports.insertClientePersonaDomicilio = function (req, res) {
-
-    var pool = new Pool({
-        connectionString: connectionString,
-    });
-
-    (async () => {
-        const client = await pool.connect()
-        try {
-            //Parametros para insertar el domicilio
-            let calle = (req.body.domicilio.calle != undefined) ? `'` + req.body.domicilio.calle + `'` : `null`;
-            let numero = (req.body.domicilio.numero != undefined) ? `'` + req.body.domicilio.numero + `'` : `null`;
-            let piso = (req.body.domicilio.piso != undefined) ? `'` + req.body.domicilio.piso + `'` : `null`;
-            let depto = (req.body.domicilio.depto != undefined) ? `'` + req.body.domicilio.depto + `'` : `null`;
-            let manzana = (req.body.domicilio.manzana != undefined) ? `'` + req.body.domicilio.manzana + `'` : `null`;
-            let lote = (req.body.domicilio.lote != undefined) ? `'` + req.body.domicilio.lote + `'` : `null`;
-            let block = (req.body.domicilio.block != undefined) ? `'` + req.body.domicilio.block + `'` : `null`;
-            let barrio = (req.body.domicilio.barrio != undefined) ? `'` + req.body.domicilio.barrio + `'` : `null`;
-            let ciudades_id = (req.body.domicilio.ciudades_id != undefined) ? `'` + req.body.domicilio.ciudades_id + `'` : `null`;
-            //Parametros para insertar la persona
-            let nro_doc = (req.body.nro_doc != undefined) ? req.body.nro_doc : `null`;
-            let tipo_doc = (req.body.tipo_doc != undefined) ? req.body.tipo_doc : `null`;
-            let apellido = (req.body.apellido != undefined) ? `'` + req.body.apellido + `'` : `null`;
-            let nombre = (req.body.nombre != undefined) ? `'` + req.body.nombre + `'` : `null`;
-            let telefono = (req.body.telefono != undefined) ? req.body.telefono : `null`;
-            let celular = (req.body.telefono_cel != undefined) ? req.body.telefono_cel : `null`;
-            let email = (req.body.email != undefined) ? `'` + req.body.email + `'` : `null`;
-            let fecha_nac = (req.body.fecha_nac != undefined) ? `'` + req.body.fecha_nac + `'` : `null`;
-            let sexo = (req.body.sexo != null) ? req.body.sexo : `null`;
-            let tipo_persona = (req.body.tipo_persona != undefined) ? req.body.tipo_persona : `null`;
-            let ip = `'` + req.ip + `'`;
-            let usuario = (req.body.usuario != undefined) ? `'` + req.body.usuario + `'` : `null`;
-            let estado_civil = (req.body.estado_civil != undefined) ? req.body.estado_civil : `null`;
-            let fecha_cese = (req.body.fecha_cese != undefined) ? `'` + req.body.fecha_cese + `'` : `null`;
-            let usuario_carga = (req.body.usuario_carga != undefined) ? `'` + req.body.usuario_carga + `'` : `null`;
-            let ip_carga = (req.body.ip_carga != undefined) ? `'` + req.body.ip_carga + `'` : `null`;
-            let fecha_carga = (req.body.fecha_carga != undefined) ? `'` + req.body.fecha_carga + `'` : `null`;
-            let telefono_caracteristica = (req.body.telefono_caracteristica != undefined) ? `'` + req.body.telefono_caracteristica + `'` : `null`;
-            let celular_caracteristica = (req.body.celular_caracteristica != undefined) ? `'` + req.body.celular_caracteristica + `'` : `null`;
-            //Parametros para insertar el cliente
-            let fecha_alta = (req.body.fecha_alta != undefined) ? `'` + req.body.fecha_alta + `'` : `now()::date`;
-
-            await client.query('BEGIN')
-
-            const { domicilio } = await client.query(`
-            INSERT INTO domicilios(calle, numero, piso, depto
-                , manzana, lote, block, barrio, ciudades_id)
-            VALUES(`+ calle + `, ` + numero + `, ` + piso + `, ` + depto + `
-            , `+ manzana + `, ` + lote + `, ` + block + `, ` + barrio + `, ` + ciudades_id + `)
-            RETURNING id;`)
-
-            const { persona } = await client.query(`
-            INSERT INTO personas(nro_doc, tipo_doc
-                , apellido, nombre
-                , telefono, telefono_cel, email
-                , fecha_nac, sexo, tipo_persona
-                , fecha_create, ip, usuario, fecha_mov
-                , estado_civil
-                , fecha_cese, usuario_carga, ip_carga, fecha_carga
-                , telefono_caracteristica, celular_caracteristica
-                , domicilios_id)
-            VALUES(`+ nro_doc + `, ` + tipo_doc + `
-                , `+ apellido + `, ` + nombre + `
-                , `+ telefono + `, ` + celular + `, ` + email + `
-                , `+ fecha_nac + `, ` + sexo + `, ` + tipo_persona + `
-                , now(), `+ ip + `, ` + usuario + `, now()
-                , `+ estado_civil + `
-                , `+ fecha_cese + `, ` + usuario_carga + `, ` + ip_carga + `, ` + fecha_carga + `
-                , `+ telefono_caracteristica + `, ` + celular_caracteristica + `
-                , `+ domicilio[0].id + `
-                ) RETURNING id; `)
-
-            const { cliente } = await client.query(`
-            INSERT INTO roma.clientes (fecha_alta, personas_id)
-            VALUES(`+ fecha_alta + `, ` + persona[0].id + `) RETURNING *; `)
-
-            await client.query('COMMIT')
-            res.status(200).send({ "mensaje": "El cliente se cargo exitosamente", "insertado": cliente[0] });
-        } catch (e) {
-            await client.query('ROLLBACK')
-            res.status(400).send({ "mensaje": "Ocurrio un error al cargar el cliente" });
-            throw e
-        } finally {
-            client.release()
-        }
-    })().catch(e => console.error(e.stack))
-};
 
 
+//----------------------------------GET----------------------------------//
 
 exports.getClientesTodos = function (req, res) {
 
@@ -190,7 +104,7 @@ exports.getClientesWhere = function (req, res) {
                 LEFT JOIN domicilios dm ON p.domicilios_id = dm.id
                 LEFT JOIN ciudades cl ON dm.ciudades_id = cl.id
                 LEFT JOIN provincias pv ON cl.provincias_id = pv.id
-                LEFT JOIN paices pc ON pv.paices_id = pc.id 
+                LEFT JOIN paises pc ON pv.paises_id = pc.id 
                 WHERE ${req.params.campo_busqueda}::varchar ilike '%${req.params.texto_buscar}%'`
                 )
                     .then(resp => {
@@ -231,13 +145,14 @@ exports.getDatosClientePorId = function (req, res) {
                     , cli.personas_id
                     , ps.*
                     , dom.*
+                    , ciu.id as ciudades_id
                     , ciu.nombre as ciudad_nombre
                     , prov.id as provincias_id
                 FROM roma.clientes cli
-                JOIN personas ps ON cli.personas_id = ps.id
+                LEFT JOIN personas ps ON cli.personas_id = ps.id
                 LEFT JOIN domicilios dom ON ps.domicilios_id = dom.id
-                JOIN ciudades ciu ON dom.ciudades_id = ciu.id
-				JOIN provincias prov ON ciu.provincias_id = prov.id
+                LEFT JOIN ciudades ciu ON dom.ciudades_id = ciu.id
+				LEFT JOIN provincias prov ON ciu.provincias_id = prov.id
                 WHERE cli.id =  `+ req.params.id)
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
@@ -510,6 +425,98 @@ exports.getClientesTxt = function (req, res) {
 //<------------------PAGINACION FIN
 
 
+//----------------------------------POST----------------------------------//
+
+
+exports.insertClientePersonaDomicilio = function (req, res) {
+
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
+
+    (async () => {
+        const client = await pool.connect()
+        try {
+            //Parametros para insertar el domicilio
+            let calle = (req.body.domicilio.calle != undefined) ? `'` + req.body.domicilio.calle + `'` : `null`;
+            let numero = (req.body.domicilio.numero != undefined) ? `'` + req.body.domicilio.numero + `'` : `null`;
+            let piso = (req.body.domicilio.piso != undefined) ? `'` + req.body.domicilio.piso + `'` : `null`;
+            let depto = (req.body.domicilio.depto != undefined) ? `'` + req.body.domicilio.depto + `'` : `null`;
+            let manzana = (req.body.domicilio.manzana != undefined) ? `'` + req.body.domicilio.manzana + `'` : `null`;
+            let lote = (req.body.domicilio.lote != undefined) ? `'` + req.body.domicilio.lote + `'` : `null`;
+            let block = (req.body.domicilio.block != undefined) ? `'` + req.body.domicilio.block + `'` : `null`;
+            let barrio = (req.body.domicilio.barrio != undefined) ? `'` + req.body.domicilio.barrio + `'` : `null`;
+            let ciudades_id = (req.body.domicilio.ciudades_id != undefined) ? `'` + req.body.domicilio.ciudades_id + `'` : `null`;
+            //Parametros para insertar la persona
+            let nro_doc = (req.body.nro_doc != undefined) ? req.body.nro_doc : `null`;
+            let tipo_doc = (req.body.tipo_doc != undefined) ? req.body.tipo_doc : `null`;
+            let apellido = (req.body.apellido != undefined) ? `'` + req.body.apellido + `'` : `null`;
+            let nombre = (req.body.nombre != undefined) ? `'` + req.body.nombre + `'` : `null`;
+            let telefono = (req.body.telefono != undefined) ? req.body.telefono : `null`;
+            let celular = (req.body.telefono_cel != undefined) ? req.body.telefono_cel : `null`;
+            let email = (req.body.email != undefined) ? `'` + req.body.email + `'` : `null`;
+            let fecha_nac = (req.body.fecha_nac != undefined) ? `'` + req.body.fecha_nac + `'` : `null`;
+            let sexo = (req.body.sexo != null) ? req.body.sexo : `null`;
+            let tipo_persona = (req.body.tipo_persona != undefined) ? req.body.tipo_persona : `null`;
+            let ip = `'` + req.ip + `'`;
+            let usuario = (req.body.usuario != undefined) ? `'` + req.body.usuario + `'` : `null`;
+            let estado_civil = (req.body.estado_civil != undefined) ? req.body.estado_civil : `null`;
+            let fecha_cese = (req.body.fecha_cese != undefined) ? `'` + req.body.fecha_cese + `'` : `null`;
+            let usuario_carga = (req.body.usuario_carga != undefined) ? `'` + req.body.usuario_carga + `'` : `null`;
+            let ip_carga = (req.body.ip_carga != undefined) ? `'` + req.body.ip_carga + `'` : `null`;
+            let fecha_carga = (req.body.fecha_carga != undefined) ? `'` + req.body.fecha_carga + `'` : `null`;
+            let telefono_caracteristica = (req.body.telefono_caracteristica != undefined) ? `'` + req.body.telefono_caracteristica + `'` : `null`;
+            let celular_caracteristica = (req.body.celular_caracteristica != undefined) ? `'` + req.body.celular_caracteristica + `'` : `null`;
+            //Parametros para insertar el cliente
+            let fecha_alta = (req.body.fecha_alta != undefined) ? `'` + req.body.fecha_alta + `'` : `now()::date`;
+
+            await client.query('BEGIN')
+
+            const { domicilio } = await client.query(`
+            INSERT INTO domicilios(calle, numero, piso, depto
+                , manzana, lote, block, barrio, ciudades_id)
+            VALUES(`+ calle + `, ` + numero + `, ` + piso + `, ` + depto + `
+            , `+ manzana + `, ` + lote + `, ` + block + `, ` + barrio + `, ` + ciudades_id + `)
+            RETURNING id;`)
+
+            const { persona } = await client.query(`
+            INSERT INTO personas(nro_doc, tipo_doc
+                , apellido, nombre
+                , telefono, telefono_cel, email
+                , fecha_nac, sexo, tipo_persona
+                , fecha_create, ip, usuario, fecha_mov
+                , estado_civil
+                , fecha_cese, usuario_carga, ip_carga, fecha_carga
+                , telefono_caracteristica, celular_caracteristica
+                , domicilios_id)
+            VALUES(`+ nro_doc + `, ` + tipo_doc + `
+                , `+ apellido + `, ` + nombre + `
+                , `+ telefono + `, ` + celular + `, ` + email + `
+                , `+ fecha_nac + `, ` + sexo + `, ` + tipo_persona + `
+                , now(), `+ ip + `, ` + usuario + `, now()
+                , `+ estado_civil + `
+                , `+ fecha_cese + `, ` + usuario_carga + `, ` + ip_carga + `, ` + fecha_carga + `
+                , `+ telefono_caracteristica + `, ` + celular_caracteristica + `
+                , `+ domicilio[0].id + `
+                ) RETURNING id; `)
+
+            const { cliente } = await client.query(`
+            INSERT INTO roma.clientes (fecha_alta, personas_id)
+            VALUES(`+ fecha_alta + `, ` + persona[0].id + `) RETURNING *; `)
+
+            await client.query('COMMIT')
+            res.status(200).send({ "mensaje": "El cliente se cargo exitosamente", "insertado": cliente[0] });
+        } catch (e) {
+            await client.query('ROLLBACK')
+            res.status(400).send({ "mensaje": "Ocurrio un error al cargar el cliente" });
+            throw e
+        } finally {
+            client.release()
+        }
+    })().catch(e => console.error(e.stack))
+};
+
+
 
 exports.insertClientePersonaDomicilio = function (req, res) {
 
@@ -694,3 +701,148 @@ exports.insertClientePersonaDomicilio = function (req, res) {
         }
     })().catch(e => console.error(e.stack))
 };
+
+
+
+exports.guardarClientePersonaDomicilio = function (req, res) {
+
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
+
+    (async () => {
+        const client = await pool.connect()
+        try {
+            //Parametros para insertar el domicilio
+            let clientes_id = (req.body.clientes_id != undefined || req.body.clientes_id != '') ? req.body.clientes_id : null;
+            let domicilios_id = (req.body.domicilios_id != undefined || req.body.domicilios_id != '') ? req.body.domicilios_id : null;
+            let personas_id = (req.body.personas_id != undefined || req.body.personas_id != '') ? req.body.personas_id : null;
+            let numero = (req.body.numero != undefined || req.body.numero != '') ? req.body.numero : null;
+            let barrio = (req.body.barrio != undefined || req.body.barrio != '') ? req.body.barrio : null;
+            let calle_id = (req.body.calle_id != undefined || req.body.calle_id != '') ? req.body.calle_id : null;
+            let ciudades_id = (req.body.ciudades_id != undefined || req.body.ciudades_id != '') ? req.body.ciudades_id : null;
+
+            //Parametros para insertar la persona
+            let nro_doc = (req.body.cuit != undefined || req.body.cuit != '') ? req.body.cuit : null;
+            let tipo_doc = `1`;
+            let apellido = (req.body.nombre != undefined || req.body.nombre != '') ? req.body.nombre : null;
+            let nombre = (req.body.nombre != undefined || req.body.nombre != '') ? req.body.nombre : null;
+            let telefono = (req.body.telefono != undefined || req.body.telefono != '') ? req.body.telefono : null;
+            let celular = (req.body.celular != undefined || req.body.celular != '') ? req.body.celular : null;
+            let tipo_persona = `2`;
+            let usuario = (req.body.nombre_usuario != undefined || req.body.nombre_usuario != '') ? req.body.nombre_usuario : null;
+            //let fecha_carga = 'now()';
+
+            //Parametros para insertar el Cliente
+            let observaciones = (req.body.observaciones != undefined || req.body.observaciones != '') ? req.body.observaciones : null;
+            let observaciones_cementerio = (req.body.observaciones_cementerio != undefined || req.body.observaciones_cementerio != '') ? req.body.observaciones_cementerio : null;
+
+            //Parametros nulos
+            let tipo_domicilio = 2;
+            let email = null;
+            let fecha_nac = null;
+            let sexo = null;
+
+
+
+            let query1;
+            if (personas_id == undefined || personas_id == 'null') {
+                query1 = {
+                    name: 'insert-personas',
+                    text: qPersonas.insertPersonaReturningId,
+                    values: [nro_doc, tipo_doc, apellido, nombre, telefono, celular, tipo_persona, ip.address(), usuario]
+                };
+            }
+            else {
+                query1 = {
+                    name: 'update-personas',
+                    text: qPersonas.updatePersonas,
+                    values: [nro_doc, apellido, nombre, telefono, celular, ip.address(), usuario, personas_id]
+                };
+
+            }
+            console.log({ "query1": query1 });
+
+            client.query('BEGIN', (err1, res1) => {
+                if (err1) {
+                    console.log('Ocurrio un error iniciando la transaccion: ' + err1.stack);
+                }
+                client.query(query1, (err2, res2) => {
+                    if (query1.name == 'insert-personas') { personas_id = res2.rows[0].id; }
+
+                    if (err2) {
+                        console.log("Ocurrio un error al guardar la persona: " + err2);
+                        client.query('ROLLBACK');
+                    };
+
+                    let query2;
+                    if (domicilios_id == undefined || domicilios_id == 'null') {
+                        query2 = {
+                            name: 'insert-domicilios',
+                            text: qDomicilios.insertDomicilioCliente,
+                            values: [personas_id, numero, barrio, tipo_domicilio, observaciones, ip.address(), usuario, calle_id, ciudades_id]
+                        };
+                    }
+                    else {
+                        query2 = {
+                            name: 'update-domicilios',
+                            text: qDomicilios.updateDomicilioCliente,
+                            values: [numero, barrio, observaciones, ip.address(), usuario, calle_id, ciudades_id, domicilios_id, personas_id]
+                        };
+                    }
+                    console.log({ "query2": query2 });
+
+                    client.query(query2, (err3, res3) => {
+                        if (err3) {
+                            client.query('ROLLBACK');
+                        };
+                        let query3;
+                        if (domicilios_id == undefined || domicilios_id == 'null') { domicilios_id = res3.rows[0].id; }
+                        if (clientes_id == undefined || clientes_id == 'null') {
+                            query3 = {
+                                name: 'insert-clientes',
+                                text: qCementerios.insertClienteReturnId,
+                                values: [domicilios_id, nombre, observaciones_cementerio, usuario, ip.address(), telefono, celular]
+                            };
+                        } else {
+                            query3 = {
+                                name: 'update-clientes',
+                                text: qCementerios.updateCliente,
+                                values: [domicilios_id, nombre, observaciones_cementerio, usuario, ip.address(), telefono, cementerio_id, celular]
+                            };
+                        }
+                        console.log({ "query3": query3 });
+
+                        client.query(query3, (err4, res4) => {
+                            if (err4) {
+                                console.log("Ocurrio un error al guardar el cementerio: " + err4.stack);
+                                client.query('ROLLBACK');
+                            }
+
+                            client.query('COMMIT');
+                        });
+
+                    });
+
+                });
+            })
+            res.status(200).send({ "mensaje": "El Cementerio se cargo exitosamente" });
+        } catch (e) {
+            await client.query('ROLLBACK')
+            res.status(400).send({ "mensaje": "Ocurrio un error al cargar el cementerio: " + e.stack });
+            throw e
+        } finally {
+            client.release()
+        }
+    })().catch(e => console.error(e.stack))
+};
+
+
+
+
+//----------------------------------PUT----------------------------------//
+
+
+
+
+//----------------------------------DELETE----------------------------------//

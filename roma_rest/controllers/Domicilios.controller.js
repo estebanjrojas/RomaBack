@@ -43,6 +43,87 @@ exports.getDomicilioByNroDoc = function (req, res) {
 
 
 
+exports.getCalles = function (req, res) {
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+
+        try {
+            (async () => {
+
+                let query = `SELECT *
+                FROM calles
+                WHERE nombre ilike '%`+req.params.calles_nombre+`%' 
+                ORDER BY nombre
+                LIMIT 5`;
+                console.log(query);
+                //respuesta = await pool.query(qDomicilios.getCalles, [req.params.calles_nombre])
+                respuesta = await pool.query(query)
+                    .then(resp => {
+                        console.log('erroreee');
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.log('erroreee2');
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta", err }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+    }
+};
+
+
+exports.getCallesEmpty = function (req, res) {
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+
+        try {
+            (async () => {
+
+                let query = `SELECT *
+                FROM calles
+                ORDER BY nombre
+                LIMIT 5`;
+                console.log(query);
+                //respuesta = await pool.query(qDomicilios.getCalles, [req.params.calles_nombre])
+                respuesta = await pool.query(query)
+                    .then(resp => {
+                        console.log('erroreee');
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.log('erroreee2');
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta", err }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+    }
+};
+
+
 exports.insert = function (req, res) {
     try{
         var respuesta = JSON.stringify({"mensaje": "La funcion no responde" });

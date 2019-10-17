@@ -16,7 +16,7 @@ exports.getCiudadesPorProvincia = function (req, res) {
         try{
             (async ()=>{
                 respuesta = await pool.query(`             
-            SELECT * FROM ciudades WHERE provincias_id =  `+req.params.provincias_id)
+            SELECT * FROM ciudades WHERE provincias_id =  `+req.params.provincias_id+` ORDER BY id `)
                 .then(resp => {
                     console.log(JSON.stringify(resp.rows));
                     res.status(200).send(JSON.stringify(resp.rows));

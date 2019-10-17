@@ -14,7 +14,7 @@ exports.getProvinciasPorPais = function (req, res) {
         try{
             (async ()=>{
                 respuesta = await pool.query(`             
-            SELECT * FROM provincias WHERE paices_id =  `+req.params.paices_id)
+            SELECT * FROM provincias WHERE paises_id =  `+req.params.paises_id)
                 .then(resp => {
                     console.log(JSON.stringify(resp.rows));
                     res.status(200).send(JSON.stringify(resp.rows));

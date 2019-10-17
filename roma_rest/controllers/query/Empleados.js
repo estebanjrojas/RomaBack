@@ -77,7 +77,7 @@ SELECT em.id as empleados_id
     , ciu.codigo_postal as domicilio_codigo_postal
     , prv.id as domicilio_provincias_id
     , prv.nombre as domicilio_provincia
-    , pai.id as domicilio_paices_id
+    , pai.id as domicilio_paises_id
     , pai.nombre as domicilio_pais
 FROM roma.empleados em
 JOIN personas ps ON em.personas_id = ps.id
@@ -85,7 +85,7 @@ JOIN roma.empresas ep ON em.empresas_id = ep.id
 LEFT JOIN domicilios dom ON ps.domicilios_id = dom.id
 LEFT JOIN ciudades ciu ON dom.ciudades_id = ciu.id
 LEFT JOIN provincias prv ON ciu.provincias_id = prv.id
-LEFT JOIN paices pai ON prv.paices_id = pai.id
+LEFT JOIN paises pai ON prv.paises_id = pai.id
 WHERE em.id = $1
 `;
 
