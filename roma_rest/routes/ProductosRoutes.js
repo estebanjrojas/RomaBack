@@ -11,6 +11,7 @@ router.route('/getCaracteristicasProductos/:id').get(middleware.checkToken, Ctrl
 router.route('/getCategoriasProductos/:id').get(middleware.checkToken, Ctrl.getCategoriasProductos);
 router.route('/getUltimoPrecioValido/:id').get(middleware.checkToken, Ctrl.getUltimoPrecioValido);
 router.route('/getHistorialPrecios/:id').get(middleware.checkToken, Ctrl.getHistorialPrecios);
+router.route('/getFotosCargadas/:id').get(middleware.checkToken, Ctrl.getFotosCargadas);
 router.route('/getCantidadPaginasProductos/:busca_codigo/:busca_nombre/:busca_descripcion/:busca_categoria').get(middleware.checkToken, Ctrl.getCantidadPaginasProductos);
 router.route('/getCantidadPaginasProductos/:busca_codigo/:busca_nombre/:busca_descripcion/:busca_categoria/:txt').get(middleware.checkToken, Ctrl.getCantidadPaginasProductosTxt);
 router.route('/getProductos/:paginaActual/:cantidadPaginas/:busca_codigo/:busca_nombre/:busca_descripcion/:busca_categoria').get(middleware.checkToken, Ctrl.getProductos);

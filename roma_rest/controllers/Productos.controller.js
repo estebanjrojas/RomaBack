@@ -4,6 +4,8 @@ var { Pool } = require('pg');
 const connectionString = configuracion.bd;
 
 
+//------------------------------GET------------------------------//
+
 exports.getProductosTodos = function (req, res) {
 
     try {
@@ -351,7 +353,36 @@ exports.getProductosPorCategoriaCampoBusqueda = function (req, res) {
 
 };
 
+exports.getFotosCargadas = function (req, res) {
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
 
+        try {
+            (async () => {
+                respuesta = await pool.query(`
+                
+                SELECT *
+                FROM roma.productos_imagenes
+                WHERE productos_id = '`+ req.params.id + `'`)
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "No se pudieron traer las imagenes" }));
+                    });
+                return respuesta;
+            })()
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+    } catch (err) {
+        res.status(400).send({ 'mensaje': 'Ocurrio un Error' });
+    }
+};
 
 
 
@@ -628,7 +659,7 @@ exports.getProductosTxt = function (req, res) {
 
 
 
-
+//------------------------------POST------------------------------//
 
 exports.insertProductoReturnId = function (req, res) {
 
@@ -959,7 +990,7 @@ exports.cargarImagenProducto = function (req, res) {
 };
 
 
-
+//------------------------------PUT------------------------------//
 
 
 exports.actualizarDatosProductos = function (req, res) {
@@ -1040,7 +1071,7 @@ exports.actualizarFechaHastaPrecio = function (req, res) {
 };
 
 
-
+//------------------------------DELETE------------------------------//
 
 exports.eliminarCaracteristicasProductos = function (req, res) {
 

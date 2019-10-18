@@ -14,12 +14,7 @@ exports.getProvinciasPorPais = function (req, res) {
         });
         try{
             (async ()=>{
-<<<<<<< HEAD
-                respuesta = await pool.query(`             
-            SELECT * FROM provincias WHERE paises_id =  `+req.params.paises_id)
-=======
                 respuesta = await pool.query(qProvincias.getProvinciasPorPais, [req.params.paices_id])
->>>>>>> 36b259d4715c52a8daa445585437fb8e68055ba6
                 .then(resp => {
                     console.log(JSON.stringify(resp.rows));
                     res.status(200).send(JSON.stringify(resp.rows));
