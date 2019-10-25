@@ -15,6 +15,7 @@ router.route('/getClientes/:paginaActual/:cantidadPaginas/:busca_nombre/:busca_a
 //POST
 router.route('/insertClientePersonaDomicilio/').post(middleware.checkToken, Ctrl.insertClientePersonaDomicilio);
 router.route('/insertClientePersonaDomicilio/').post(middleware.checkToken, Ctrl.insertClientePersonaDomicilio);
+router.route('/guardarClientePersonaDomicilio/').post(middleware.checkToken, Ctrl.guardarClientePersonaDomicilio);
 
 //PUT
 

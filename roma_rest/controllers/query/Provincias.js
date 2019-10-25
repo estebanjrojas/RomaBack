@@ -1,1 +1,1 @@
-exports.getProvinciasPorPais = ` SELECT * FROM provincias WHERE paices_id = $1`;
+exports.getProvinciasPorPais = ` SELECT * FROM provincias WHERE paises_id = $1`;

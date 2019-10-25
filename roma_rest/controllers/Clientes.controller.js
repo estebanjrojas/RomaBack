@@ -2,6 +2,10 @@
 const configuracion = require("../utillities/config");
 var { Pool } = require('pg');
 const connectionString = configuracion.bd;
+const qPersonas = require("../controllers/query/Personas");
+const qDomicilios = require("../controllers/query/Domicilios");
+const qClientes = require("../controllers/query/Clientes");
+var ip = require('ip');
 
 
 
@@ -148,6 +152,8 @@ exports.getDatosClientePorId = function (req, res) {
                     , ciu.id as ciudades_id
                     , ciu.nombre as ciudad_nombre
                     , prov.id as provincias_id
+                    , ps.id as personas_id
+                    , dom.id as domicilios_id
                 FROM roma.clientes cli
                 LEFT JOIN personas ps ON cli.personas_id = ps.id
                 LEFT JOIN domicilios dom ON ps.domicilios_id = dom.id
@@ -235,8 +241,8 @@ exports.getCantidadPaginasClientesTxt = function (req, res) {
             + '/' + habilitarBusquedaApellido
             + '/' + habilitarBusquedaDni
             + '/' + habilitarBusquedaFechaNac);
-        if ((habilitarBusquedaNombre + habilitarBusquedaApellido + 
-                habilitarBusquedaDni + habilitarBusquedaFechaNac) > 0) {
+        if ((habilitarBusquedaNombre + habilitarBusquedaApellido +
+            habilitarBusquedaDni + habilitarBusquedaFechaNac) > 0) {
             parametrosBusqueda = parametrosBusqueda + ` WHERE `;
             if (habilitarBusquedaNombre == 1) {
                 parametrosBusqueda = parametrosBusqueda + `p.nombre::varchar ilike '%` + req.params.txt + `%'`;
@@ -252,7 +258,7 @@ exports.getCantidadPaginasClientesTxt = function (req, res) {
             }
 
             if (habilitarBusquedaDni == 1) {
-                if (habilitarBusquedaApellido+habilitarBusquedaNombre == 0) {
+                if (habilitarBusquedaApellido + habilitarBusquedaNombre == 0) {
                     parametrosBusqueda = parametrosBusqueda + `p.nro_doc::varchar ilike '%` + req.params.txt + `%'`;
                 } else {
                     parametrosBusqueda = parametrosBusqueda + `OR p.nro_doc::varchar ilike '%` + req.params.txt + `%'`;
@@ -297,7 +303,7 @@ exports.getCantidadPaginasClientesTxt = function (req, res) {
         }
 
     } catch (err) {
-        res.status(400).send({'mensaje': 'Ocurrio un Error', "error": err});
+        res.status(400).send({ 'mensaje': 'Ocurrio un Error', "error": err });
     }
 };
 
@@ -357,8 +363,8 @@ exports.getClientesTxt = function (req, res) {
             + '/' + habilitarBusquedaApellido
             + '/' + habilitarBusquedaDni
             + '/' + habilitarBusquedaFechaNac);
-        if ((habilitarBusquedaNombre + habilitarBusquedaApellido + 
-                habilitarBusquedaDni + habilitarBusquedaFechaNac) > 0) {
+        if ((habilitarBusquedaNombre + habilitarBusquedaApellido +
+            habilitarBusquedaDni + habilitarBusquedaFechaNac) > 0) {
             parametrosBusqueda = parametrosBusqueda + ` WHERE `;
             if (habilitarBusquedaNombre == 1) {
                 parametrosBusqueda = parametrosBusqueda + `p.nombre::varchar ilike '%` + req.params.txt + `%'`;
@@ -374,7 +380,7 @@ exports.getClientesTxt = function (req, res) {
             }
 
             if (habilitarBusquedaDni == 1) {
-                if (habilitarBusquedaApellido+habilitarBusquedaNombre == 0) {
+                if (habilitarBusquedaApellido + habilitarBusquedaNombre == 0) {
                     parametrosBusqueda = parametrosBusqueda + `p.nro_doc::varchar ilike '%` + req.params.txt + `%'`;
                 } else {
                     parametrosBusqueda = parametrosBusqueda + `OR p.nro_doc::varchar ilike '%` + req.params.txt + `%'`;
@@ -717,78 +723,87 @@ exports.guardarClientePersonaDomicilio = function (req, res) {
             let clientes_id = (req.body.clientes_id != undefined || req.body.clientes_id != '') ? req.body.clientes_id : null;
             let domicilios_id = (req.body.domicilios_id != undefined || req.body.domicilios_id != '') ? req.body.domicilios_id : null;
             let personas_id = (req.body.personas_id != undefined || req.body.personas_id != '') ? req.body.personas_id : null;
+            let calle = (req.body.calle != undefined || req.body.calle != '') ? req.body.calle : null;
             let numero = (req.body.numero != undefined || req.body.numero != '') ? req.body.numero : null;
-            let barrio = (req.body.barrio != undefined || req.body.barrio != '') ? req.body.barrio : null;
-            let calle_id = (req.body.calle_id != undefined || req.body.calle_id != '') ? req.body.calle_id : null;
+            let piso = (req.body.piso != undefined || req.body.piso != '') ? req.body.piso : null;
+            let depto = (req.body.depto != undefined || req.body.depto != '') ? req.body.depto : null;
+            let manzana = (req.body.manzana != undefined || req.body.manzana != '') ? req.body.manzana : null;
+            let provincias_id = (req.body.provincia != undefined || req.body.provincia != '') ? req.body.provincia : null;
             let ciudades_id = (req.body.ciudades_id != undefined || req.body.ciudades_id != '') ? req.body.ciudades_id : null;
 
             //Parametros para insertar la persona
-            let nro_doc = (req.body.cuit != undefined || req.body.cuit != '') ? req.body.cuit : null;
+            let nro_doc = (req.body.documento != undefined || req.body.documento != '') ? req.body.documento : null;
             let tipo_doc = `1`;
-            let apellido = (req.body.nombre != undefined || req.body.nombre != '') ? req.body.nombre : null;
+            let apellido = (req.body.apellido != undefined || req.body.apellido != '') ? req.body.apellido : null;
             let nombre = (req.body.nombre != undefined || req.body.nombre != '') ? req.body.nombre : null;
+            let fecha_nac = (req.body.fecha_nacimiento != undefined || req.body.fecha_nacimiento != '') ? req.body.fecha_nacimiento : null;
+            let sexo = (req.body.sexo != undefined || req.body.sexo != '') ? req.body.sexo : null;
             let telefono = (req.body.telefono != undefined || req.body.telefono != '') ? req.body.telefono : null;
             let celular = (req.body.celular != undefined || req.body.celular != '') ? req.body.celular : null;
+            let email = (req.body.email != undefined || req.body.email != '') ? req.body.email : null;
             let tipo_persona = `2`;
             let usuario = (req.body.nombre_usuario != undefined || req.body.nombre_usuario != '') ? req.body.nombre_usuario : null;
             //let fecha_carga = 'now()';
 
-            //Parametros para insertar el Cliente
-            let observaciones = (req.body.observaciones != undefined || req.body.observaciones != '') ? req.body.observaciones : null;
-            let observaciones_cementerio = (req.body.observaciones_cementerio != undefined || req.body.observaciones_cementerio != '') ? req.body.observaciones_cementerio : null;
 
             //Parametros nulos
             let tipo_domicilio = 2;
-            let email = null;
-            let fecha_nac = null;
-            let sexo = null;
 
 
 
             let query1;
-            if (personas_id == undefined || personas_id == 'null') {
+            if (domicilios_id == undefined || domicilios_id == 'null') {
                 query1 = {
-                    name: 'insert-personas',
-                    text: qPersonas.insertPersonaReturningId,
-                    values: [nro_doc, tipo_doc, apellido, nombre, telefono, celular, tipo_persona, ip.address(), usuario]
+                    name: 'insert-domicilios',
+                    text: qDomicilios.insertDomiciliosReturnId,
+                    values: [calle, numero, piso, depto, manzana, ciudades_id]
                 };
             }
             else {
                 query1 = {
-                    name: 'update-personas',
-                    text: qPersonas.updatePersonas,
-                    values: [nro_doc, apellido, nombre, telefono, celular, ip.address(), usuario, personas_id]
+                    name: 'update-domicilios',
+                    text: qDomicilios.updateDomicilio,
+                    values: [calle, numero, piso, depto, manzana, ciudades_id, domicilios_id]
                 };
-
             }
             console.log({ "query1": query1 });
+
 
             client.query('BEGIN', (err1, res1) => {
                 if (err1) {
                     console.log('Ocurrio un error iniciando la transaccion: ' + err1.stack);
                 }
                 client.query(query1, (err2, res2) => {
-                    if (query1.name == 'insert-personas') { personas_id = res2.rows[0].id; }
+                    if (query1.name == 'insert-domicilios') { domicilios_id = res2.rows[0].id; }
 
                     if (err2) {
-                        console.log("Ocurrio un error al guardar la persona: " + err2);
+                        console.log("Ocurrio un error al guardar el domicilio: " + err2);
                         client.query('ROLLBACK');
                     };
 
                     let query2;
-                    if (domicilios_id == undefined || domicilios_id == 'null') {
+                    if (personas_id == undefined || personas_id == 'null') {
                         query2 = {
-                            name: 'insert-domicilios',
-                            text: qDomicilios.insertDomicilioCliente,
-                            values: [personas_id, numero, barrio, tipo_domicilio, observaciones, ip.address(), usuario, calle_id, ciudades_id]
+                            name: 'insert-personas',
+                            text: qPersonas.insertPersonaReturningId,
+                            values: [
+                                nro_doc, tipo_doc, apellido, nombre,
+                                telefono, celular, email, fecha_nac,
+                                sexo, tipo_persona, ip.address(), usuario, domicilios_id
+                            ]
                         };
                     }
                     else {
                         query2 = {
-                            name: 'update-domicilios',
-                            text: qDomicilios.updateDomicilioCliente,
-                            values: [numero, barrio, observaciones, ip.address(), usuario, calle_id, ciudades_id, domicilios_id, personas_id]
+                            name: 'update-personas',
+                            text: qPersonas.updatePersonas,
+                            values: [
+                                nro_doc, tipo_doc, apellido, nombre,
+                                telefono, celular, email, fecha_nac,
+                                sexo, tipo_persona, ip.address(), usuario, personas_id, domicilios_id
+                            ]
                         };
+
                     }
                     console.log({ "query2": query2 });
 
@@ -797,25 +812,25 @@ exports.guardarClientePersonaDomicilio = function (req, res) {
                             client.query('ROLLBACK');
                         };
                         let query3;
-                        if (domicilios_id == undefined || domicilios_id == 'null') { domicilios_id = res3.rows[0].id; }
+                        if (personas_id == undefined || personas_id == 'null') { personas_id = res3.rows[0].id; }
                         if (clientes_id == undefined || clientes_id == 'null') {
                             query3 = {
                                 name: 'insert-clientes',
-                                text: qCementerios.insertClienteReturnId,
-                                values: [domicilios_id, nombre, observaciones_cementerio, usuario, ip.address(), telefono, celular]
+                                text: qClientes.insertClienteReturnId,
+                                values: [personas_id]
                             };
                         } else {
                             query3 = {
                                 name: 'update-clientes',
-                                text: qCementerios.updateCliente,
-                                values: [domicilios_id, nombre, observaciones_cementerio, usuario, ip.address(), telefono, cementerio_id, celular]
+                                text: qClientes.updateClientesDomicilios,
+                                values: [personas_id, clientes_id]
                             };
                         }
                         console.log({ "query3": query3 });
 
                         client.query(query3, (err4, res4) => {
                             if (err4) {
-                                console.log("Ocurrio un error al guardar el cementerio: " + err4.stack);
+                                console.log("Ocurrio un error al guardar el cliente: " + err4.stack);
                                 client.query('ROLLBACK');
                             }
 
