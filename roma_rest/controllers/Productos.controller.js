@@ -1,5 +1,6 @@
 //Conexión a Postgres
 const configuracion = require("../utillities/config");
+const qProductos = require("./query/Productos.js");
 var { Pool } = require('pg');
 const connectionString = configuracion.bd;
 
@@ -15,17 +16,7 @@ exports.getProductosTodos = function (req, res) {
         });
         try {
             (async () => {
-                respuesta = await pool.query(`             
-            SELECT 
-                p.id as productos_id
-                ,  p.*
-                , pc.*
-                , cat.nombre as nombre_categoria
-                , roma.get_imagen_principal_producto(p.id) as imagen
-            FROM roma.productos p
-            JOIN roma.productos_categorias pc ON p.id = pc.productos_id
-            JOIN roma.categorias cat ON pc.categorias_id = cat.id
-             `)
+                respuesta = await pool.query(qProductos.getProductosTodos, [])
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -57,22 +48,7 @@ exports.getProductosBusqueda = function (req, res) {
         });
         try {
             (async () => {
-                respuesta = await pool.query(`             
-            SELECT 
-              p.id as productos_id
-              ,  p.*
-              , pc.*
-              , cat.nombre as nombre_categoria
-              , roma.get_imagen_principal_producto(p.id) as imagen
-            FROM roma.productos p
-            JOIN roma.productos_categorias pc ON p.id = pc.productos_id
-            JOIN roma.categorias cat ON pc.categorias_id = cat.id
-            WHERE (p.codigo::varchar ilike '%`+ req.params.texto_busqueda + `%'
-                    OR p.nombre ilike '%`+ req.params.texto_busqueda + `%'
-                    OR descripcion ilike '%`+ req.params.texto_busqueda + `%'
-                    OR cat.nombre ilike '%`+ req.params.texto_busqueda + `%'
-                    OR tipo_producto) ilike '%`+ req.params.texto_busqueda + `%')`
-                )
+                respuesta = await pool.query(qProductos.getProductosBusqueda, [req.params.texto_busqueda])
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -104,11 +80,7 @@ exports.getDatosProductos = function (req, res) {
 
         try {
             (async () => {
-                respuesta = await pool.query(`
-                SELECT *, roma.get_imagen_principal_producto(pr.id) as imagen
-                FROM roma.productos pr
-                JOIN roma.precios_productos prp ON pr.id = prp.productos_id             
-                WHERE pr.id = `+ req.params.id + ` `)
+                respuesta = await pool.query(qProductos.getDatosProductos, [req.params.id])
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -139,10 +111,7 @@ exports.getCaracteristicasProductos = function (req, res) {
 
         try {
             (async () => {
-                respuesta = await pool.query(`
-                SELECT * 
-                FROM roma.productos_caracteristicas             
-                WHERE productos_id = `+ req.params.id + ` `)
+                respuesta = await pool.query(qProductos.getCaracteristicasProductos, [req.params.id])
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -173,12 +142,7 @@ exports.getCategoriasProductos = function (req, res) {
 
         try {
             (async () => {
-                respuesta = await pool.query(`
-                SELECT cat.id as categorias_id, cat.nombre
-                , roma.get_nombre_categoria_padre(cat.id) as categoria_padre 
-                FROM roma.productos_categorias pc
-                JOIN roma.categorias cat ON pc.categorias_id = cat.id    
-                WHERE productos_id = `+ req.params.id + ` `)
+                respuesta = await pool.query(qProductos.getCategoriasProductos, [req.params.id])
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -208,11 +172,7 @@ exports.getUltimoPrecioValido = function (req, res) {
 
         try {
             (async () => {
-                respuesta = await pool.query(`
-                SELECT *
-                FROM roma.precios_productos    
-                WHERE productos_id = `+ req.params.id + ` AND now()::date 
-                    BETWEEN fecha_desde AND coalesce(fecha_hasta, now())::date `)
+                respuesta = await pool.query(qProductos.getUltimoPrecioValido, [req.params.id])
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -243,10 +203,7 @@ exports.getHistorialPrecios = function (req, res) {
 
         try {
             (async () => {
-                respuesta = await pool.query(`
-                SELECT *
-                FROM roma.precios_productos    
-                WHERE productos_id = `+ req.params.id + ` `)
+                respuesta = await pool.query(qProductos.getHistorialPrecios, [req.params.id])
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -277,11 +234,7 @@ exports.getImagenesProductos = function (req, res) {
 
         try {
             (async () => {
-                respuesta = await pool.query(`
-                SELECT *, case when principal=true then 1 else 0 end as orden
-                FROM roma.productos_imagenes
-                WHERE productos_id = `+ req.params.id + `
-                ORDER BY orden DESC;  `)
+                respuesta = await pool.query(qProductos.getImagenesProductos, [req.params.id])
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -313,24 +266,7 @@ exports.getProductosPorCategoriaCampoBusqueda = function (req, res) {
         });
         try {
             (async () => {
-                respuesta = await pool.query(`             
-                SELECT prod.id as productos_id
-                     , prod.codigo, prod.nombre, prod.descripcion, prod.descripcion_factura
-                     , prod.tipo_producto, gdt(7, prod.tipo_producto) as tipo_producto_descrip
-                     , prod.fecha_desde, prod.fecha_hasta
-                     , roma.get_imagen_principal_producto(prod.id) as imagen_principal
-                     , ppre.monto as precio
-                     , ppre.unidad as moneda
-                FROM roma.productos prod
-                LEFT JOIN roma.productos_categorias pcat ON prod.id = pcat.productos_id
-                LEFT JOIN roma.precios_productos ppre ON prod.id = ppre.productos_id AND now()::date between ppre.fecha_desde and coalesce(ppre.fecha_hasta, now())::date
-                WHERE (pcat.categorias_id = ${req.params.categorias_id} OR ${req.params.categorias_id} = 0)
-                AND ${req.params.campo_buscar}::varchar ilike '%${req.params.texto_buscar}%'
-                AND coalesce(prod.fecha_hasta, now())::date >= now()::date
-                GROUP BY prod.id, prod.codigo, prod.nombre, prod.descripcion, prod.descripcion_factura
-                , prod.tipo_producto, prod.fecha_desde, prod.fecha_hasta
-                , ppre.monto, ppre.unidad
-             `)
+                respuesta = await pool.query(qProductos.getProductosPorCategoriaCampoBusqueda, [req.params.categorias_id, req.params.campo_buscar, req.params.texto_buscar])
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -362,11 +298,7 @@ exports.getFotosCargadas = function (req, res) {
 
         try {
             (async () => {
-                respuesta = await pool.query(`
-                
-                SELECT *
-                FROM roma.productos_imagenes
-                WHERE productos_id = '`+ req.params.id + `'`)
+                respuesta = await pool.query(qProductos.getFotosCargadas, [req.params.id])
                     .then(resp => {
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
@@ -397,24 +329,7 @@ exports.getCantidadPaginasProductos = function (req, res) {
 
         try {
             (async () => {
-                query = ` 
-                SELECT 
-                    COUNT(*) as cantidad_registros,
-                    (COUNT(*)/5 )+ (CASE WHEN COUNT(*) % 5 >0 THEN 1 ELSE 0 END) AS cantidad_paginas
-                FROM (
-                    SELECT 
-                          p.id as productos_id
-                        ,  p.*
-                        , pc.*
-                        , cat.nombre as nombre_categoria
-                        , roma.get_imagen_principal_producto(p.id) as imagen
-                    FROM roma.productos p
-                    JOIN roma.productos_categorias pc ON p.id = pc.productos_id
-                    JOIN roma.categorias cat ON pc.categorias_id = cat.id
-                )x
-                `;
-                console.log(query);
-                respuesta = await pool.query(query).then(resp => {
+                respuesta = await pool.query(qProductos.getCantidadPaginasProductos).then(resp => {
                     console.log(JSON.stringify(resp.rows));
                     res.status(200).send({ "regCantidadPaginas": resp.rows[0] });
                 }).catch(err => {
@@ -499,7 +414,7 @@ exports.getCantidadPaginasProductosTxt = function (req, res) {
                     FROM roma.productos p
                     JOIN roma.productos_categorias pc ON p.id = pc.productos_id
                     JOIN roma.categorias cat ON pc.categorias_id = cat.id
-                    `+ parametrosBusqueda + `
+                    ${parametrosBusqueda}
                 )x `;
                 console.log(query);
                 respuesta = await pool.query(query).then(resp => {
@@ -533,8 +448,7 @@ exports.getProductos = function (req, res) {
         try {
             (async () => {
                 query = ` 
-                SELECT 
-                          p.id as productos_id
+                SELECT p.id as productos_id
                         ,  p.*
                         , pc.*
                         , cat.nombre as nombre_categoria
@@ -543,9 +457,9 @@ exports.getProductos = function (req, res) {
                 JOIN roma.productos_categorias pc ON p.id = pc.productos_id
                 JOIN roma.categorias cat ON pc.categorias_id = cat.id 
                 OFFSET (5* ((CASE 
-                    WHEN `+ req.params.paginaActual + `>` + req.params.cantidadPaginas + ` THEN ` + req.params.cantidadPaginas + ` 
-                    WHEN `+ req.params.paginaActual + `<1 THEN 1 
-                    ELSE `+ req.params.paginaActual + ` END) -1))
+                    WHEN ${req.params.paginaActual} > ${req.params.cantidadPaginas} THEN  ${req.params.cantidadPaginas} 
+                    WHEN ${req.params.paginaActual} <1 THEN 1 
+                    ELSE ${req.params.paginaActual} END) -1))
                 LIMIT 5 `;
                 console.log(query);
                 respuesta = await pool.query(query).then(resp => {
@@ -620,8 +534,7 @@ exports.getProductosTxt = function (req, res) {
         try {
             (async () => {
                 query = ` 
-                SELECT 
-                          p.id as productos_id
+                SELECT p.id as productos_id
                         ,  p.*
                         , pc.*
                         , cat.nombre as nombre_categoria
@@ -631,9 +544,9 @@ exports.getProductosTxt = function (req, res) {
                 JOIN roma.categorias cat ON pc.categorias_id = cat.id
                 `+ parametrosBusqueda + `
                 OFFSET (5* ((CASE 
-                    WHEN `+ req.params.paginaActual + `>` + req.params.cantidadPaginas + ` THEN ` + req.params.cantidadPaginas + ` 
-                    WHEN `+ req.params.paginaActual + `<1 THEN 1 
-                    ELSE `+ req.params.paginaActual + ` END)-1))
+                    WHEN ${req.params.paginaActual} > ${req.params.cantidadPaginas} THEN ${req.params.cantidadPaginas}
+                    WHEN ${req.params.paginaActual} <1 THEN 1 
+                    ELSE ${req.params.paginaActual} END)-1))
                 LIMIT 5 `;
                 console.log(query);
                 respuesta = await pool.query(query).then(resp => {
@@ -681,35 +594,9 @@ exports.insertProductoReturnId = function (req, res) {
 
             await client.query('BEGIN')
 
-            const { rows } = await client.query(`
+            const { rows } = await client.query(qProductos.insertProductosReturningId, [codigo, nombre, descripcion, descripcion_factura, tipo_producto])
 
-            INSERT INTO roma.productos (codigo
-                , nombre
-                , descripcion
-                , descripcion_factura
-                , tipo_producto
-                , fecha_desde)
-            VALUES(`+ codigo + `
-                , `+ nombre + `
-                , `+ descripcion + `
-                , `+ descripcion_factura + `
-                , `+ tipo_producto + `
-                , now()::date
-                ) RETURNING id; `)
-
-            const { precios_productos } = await client.query(`
-            INSERT INTO roma.precios_productos(
-                  monto
-                , unidad
-                , fecha_desde
-                , productos_id
-                )
-            VALUES(
-                  ${req.body.precio}
-                , ${req.body.unidad}
-                , now()::date
-                , `+ rows[0].id + `
-                )`)
+            const { precios_productos } = await client.query(qProductos.insertPreciosProductos, [req.body.precio, req.body.unidad, rows[0].id])
 
             await client.query('COMMIT')
             res.status(200).send({ "mensaje": "El Producto fue guardado exitosamente", "id": rows[0].id });
@@ -734,9 +621,7 @@ exports.insertNuevoPrecioProducto = function (req, res) {
         const client = await pool.connect()
         try {
             await client.query('BEGIN')
-
-
-            const { precios_productos } = await client.query(`
+            await client.query(`
             INSERT INTO roma.precios_productos(
                   monto
                 , fecha_desde
