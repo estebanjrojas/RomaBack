@@ -8,11 +8,15 @@ SELECT v.id as ventas_id
     , per2.nombre as nombre_vendedor
     , per2.apellido as apellido_vendedor
     , v.monto_total as monto
+    , CASE WHEN v.fecha_anulacion is not null THEN true ELSE false END as anulada
+	, v.fecha_anulacion
+	, v.usuario_anulacion
 FROM roma.ventas v 
 JOIN roma.clientes cli ON v.clientes_id = cli.id
 JOIN personas per ON cli.personas_id = per.id
 JOIN roma.empleados emp ON v.empleados_id = emp.id
 JOIN personas per2 ON emp.personas_id = per2.id 
+ORDER BY fecha desc, v.id
 `;
 
 exports.getVentasBusqueda = `
@@ -25,6 +29,9 @@ SELECT v.id as ventas_id
     , per2.nombre as nombre_vendedor
     , per2.apellido as apellido_vendedor
     , v.monto_total as monto
+    , CASE WHEN v.fecha_anulacion is not null THEN true ELSE false END as anulada
+	, v.fecha_anulacion
+	, v.usuario_anulacion
 FROM roma.ventas v 
 JOIN roma.clientes cli ON v.clientes_id = cli.id
 JOIN personas per ON cli.personas_id = per.id
@@ -35,6 +42,30 @@ WHERE (per.nombre::varchar ilike '%' || $1 || '%'
         OR per2.nombre::varchar ilike '%' || $1 || '%'
         OR per2.apellido::varchar ilike '%' || $1 || '%'
         OR v.monto_total::varchar ilike '%' || $1 || '%')
+ORDER BY fecha desc, v.id
+`;
+
+
+exports.getVentaPorId = `
+SELECT v.id as ventas_id
+    , cli.id as clientes_id
+    , per.id as personas_id
+    , v.fecha
+    , per.nombre as nombre_cliente
+    , per.apellido as apellido_cliente
+    , per2.nombre as nombre_vendedor
+    , per2.apellido as apellido_vendedor
+    , v.monto_total as monto
+    , CASE WHEN v.fecha_anulacion is not null THEN true ELSE false END as anulada
+	, v.fecha_anulacion
+	, v.usuario_anulacion
+FROM roma.ventas v 
+JOIN roma.clientes cli ON v.clientes_id = cli.id
+JOIN personas per ON cli.personas_id = per.id
+JOIN roma.empleados emp ON v.empleados_id = emp.id
+JOIN personas per2 ON emp.personas_id = per2.id
+WHERE v.id = $1
+ORDER BY fecha desc, v.id;
 `;
 
 exports.insertReturnId = `
@@ -49,3 +80,6 @@ VALUES($1, $2, $3, $4, $5, $6)
 RETURNING id;
 `;
 
+exports.anularVenta = `
+UPDATE roma.ventas SET fecha_anulacion = now(), usuario_anulacion = $1 WHERE id = $2;
+`;
