@@ -13,11 +13,11 @@ async function generarTokenString(usuario, identificador) {
         var token_generado = '';
         const client = await pool.connect();
         await client.query(qUsuarios.generarTokenString, [usuario, identificador], ((err, resp) => {
-                if (err) console.log(err);
-                token_generado = resp.rows[0].token_acceso;
-                console.log("Token Generado en BD: " + token_generado);
-                return token_generado;
-            }))
+            if (err) console.log(err);
+            token_generado = resp.rows[0].token_acceso;
+            console.log("Token Generado en BD: " + token_generado);
+            return token_generado;
+        }))
     }
     catch (error) {
         return "ERROR: " + error;
@@ -39,6 +39,8 @@ function generarToken(usuario, token_bd, llave_privada) {
     }
 
 }
+
+/*---------------------------GET----------------------------- */
 
 exports.solicitarAccesoUsuario = async function (req, res) {
     try {
@@ -216,6 +218,319 @@ exports.getUsuariosBusqueda = function (req, res) {
 };
 
 
+exports.getDatosUsuariosCargados = function (req, res) {
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        console.log("ID_USUARIO: " + req.params.id_usuario);
+        try {
+            (async () => {
+                respuesta = await pool.query(qUsuarios.getDatosUsuariosCargados, [req.params.id])
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+    }
+};
+
+
+exports.getPerfilesAsignados = function (req, res) {
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        console.log("ID_USUARIO: " + req.params.id_usuario);
+        try {
+            (async () => {
+                respuesta = await pool.query(qUsuarios.getPerfilesAsignados, [req.params.id])
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+    }
+};
+
+exports.getPerfilesSinAsignar = function (req, res) {
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        try {
+            (async () => {
+                respuesta = await pool.query(qUsuarios.getPerfilesSinAsignar, [req.params.id])
+                    .then(resp => {
+                        console.log(JSON.stringify(resp.rows));
+                        res.status(200).send(JSON.stringify(resp.rows));
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                    });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+    }
+};
+
+
+
+//-----------> PAGINACION INICIO :
+exports.getCantidadPaginasUsuarios = function (req, res) {
+    try {
+        let query = ``;
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+
+        try {
+            (async () => {
+                query = ` 
+                SELECT 
+                    count(*) as cantidad_registros,
+                    (count(*)/5 )+ (case when count(*) % 5 >0 then 1 else 0 end) as cantidad_paginas
+                FROM (
+                    SELECT 
+                        * 
+                    FROM seguridad.usuarios usr
+                    JOIN public.personas ps ON usr.personas_id = ps.id 
+                )x
+                `;
+                console.log(query);
+                respuesta = await pool.query(query).then(resp => {
+                    console.log(JSON.stringify(resp.rows));
+                    res.status(200).send({ "regCantidadPaginas": resp.rows[0] });
+                }).catch(err => {
+                    console.error("ERROR", err.stack);
+                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+};
+
+exports.getCantidadPaginasUsuariosTxt = function (req, res) {
+    try {
+        let query = ``;
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        let parametrosBusqueda = ``;
+        let habilitarBusquedaNombre = parseInt(req.params.busca_nombre);
+        let habilitarBusquedaUsuario = parseInt(req.params.busca_usuario);
+        let habilitarBusquedaDescripcion = parseInt(req.params.busca_descripcion);
+        if ((habilitarBusquedaNombre + habilitarBusquedaUsuario + habilitarBusquedaDescripcion) > 0) {
+            parametrosBusqueda = parametrosBusqueda + ` WHERE   `;
+            if (habilitarBusquedaNombre == 1) {
+                parametrosBusqueda = parametrosBusqueda + `ps.apellido::varchar ||', '|| ps.nombre::varchar ilike '%` + req.params.txt + `%'`;
+            }
+            if (habilitarBusquedaUsuario == 1) {
+                if (habilitarBusquedaNombre == 0) {
+                    parametrosBusqueda = parametrosBusqueda + `usr.nomb_usr::varchar ilike '%` + req.params.txt + `%'`;
+                } else {
+                    parametrosBusqueda = parametrosBusqueda + `OR usr.nomb_usr::varchar ilike '%` + req.params.txt + `%'`;
+                }
+            }
+            if (habilitarBusquedaDescripcion == 1) {
+                if ((habilitarBusquedaNombre + habilitarBusquedaUsuario) == 0) {
+                    parametrosBusqueda = parametrosBusqueda + `usr.desc_usr::varchar ilike '%` + req.params.txt + `%'`;
+                } else {
+                    parametrosBusqueda = parametrosBusqueda + `OR usr.desc_usr::varchar ilike '%` + req.params.txt + `%'`;
+                }
+            }
+        }
+        try {
+            (async () => {
+                query = ` 
+                SELECT 
+                    count(*) as cantidad_registros,
+                    (count(*)/5 )+ (case when count(*) % 5 >0 then 1 else 0 end) as cantidad_paginas
+                FROM (
+                    SELECT 
+                        * 
+                    FROM seguridad.usuarios usr
+                    JOIN public.personas ps ON usr.personas_id = ps.id 
+                    `+ parametrosBusqueda + `
+                )x `;
+                console.log(query);
+                respuesta = await pool.query(query).then(resp => {
+                    console.log(JSON.stringify(resp.rows));
+                    res.status(200).send({ "regCantidadPaginas": resp.rows[0] });
+                }).catch(err => {
+                    console.error("ERROR", err.stack);
+                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+};
+
+exports.getUsuarios = function (req, res) {
+    try {
+        let query = ``;
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+
+        try {
+            (async () => {
+                query = ` 
+                SELECT 
+                    * 
+                FROM seguridad.usuarios usr
+                JOIN public.personas ps ON usr.personas_id = ps.id 
+                ORDER BY ps.apellido, ps.nombre
+                OFFSET (5* ((CASE 
+                    WHEN `+ req.params.paginaActual + `>` + req.params.cantidadPaginas + ` THEN ` + req.params.cantidadPaginas + ` 
+                    WHEN `+ req.params.paginaActual + `<1 THEN 1 
+                    ELSE `+ req.params.paginaActual + ` END) -1))
+                LIMIT 5 `;
+                console.log(query);
+                respuesta = await pool.query(query).then(resp => {
+                    console.log(JSON.stringify(resp.rows));
+                    res.status(200).send(resp.rows);
+                }).catch(err => {
+                    console.error("ERROR", err.stack);
+                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+};
+
+exports.getUsuariosTxt = function (req, res) {
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        let query = ``;
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        let parametrosBusqueda = ``;
+        let habilitarBusquedaNombre = parseInt(req.params.busca_nombre);
+        let habilitarBusquedaUsuario = parseInt(req.params.busca_usuario);
+        let habilitarBusquedaDescripcion = parseInt(req.params.busca_descripcion);
+        if ((habilitarBusquedaNombre + habilitarBusquedaUsuario + habilitarBusquedaDescripcion) > 0) {
+            parametrosBusqueda = parametrosBusqueda + ` WHERE   `;
+            if (habilitarBusquedaNombre == 1) {
+                parametrosBusqueda = parametrosBusqueda + `ps.apellido::varchar ||', '|| ps.nombre::varchar ilike '%` + req.params.txt + `%'`;
+            }
+            if (habilitarBusquedaUsuario == 1) {
+                if (habilitarBusquedaNombre == 0) {
+                    parametrosBusqueda = parametrosBusqueda + `usr.nomb_usr::varchar ilike '%` + req.params.txt + `%'`;
+                } else {
+                    parametrosBusqueda = parametrosBusqueda + `OR usr.nomb_usr::varchar ilike '%` + req.params.txt + `%'`;
+                }
+            }
+            if (habilitarBusquedaDescripcion == 1) {
+                if ((habilitarBusquedaNombre + habilitarBusquedaUsuario) == 0) {
+                    parametrosBusqueda = parametrosBusqueda + `usr.desc_usr::varchar ilike '%` + req.params.txt + `%'`;
+                } else {
+                    parametrosBusqueda = parametrosBusqueda + `OR usr.desc_usr::varchar ilike '%` + req.params.txt + `%'`;
+                }
+            }
+        }
+        try {
+            (async () => {
+                query = ` 
+                SELECT 
+                    * 
+                FROM seguridad.usuarios usr
+                JOIN public.personas ps ON usr.personas_id = ps.id 
+                `+ parametrosBusqueda + `
+                ORDER BY ps.apellido, ps.nombre
+                OFFSET (5* ((CASE 
+                    WHEN `+ req.params.paginaActual + `>` + req.params.cantidadPaginas + ` THEN ` + req.params.cantidadPaginas + ` 
+                    WHEN `+ req.params.paginaActual + `<1 THEN 1 
+                    ELSE `+ req.params.paginaActual + ` END)-1))
+                LIMIT 5 `;
+                console.log(query);
+                respuesta = await pool.query(query).then(resp => {
+                    console.log(JSON.stringify(resp.rows));
+                    res.status(200).send(resp.rows);
+                }).catch(err => {
+                    console.error("ERROR", err.stack);
+                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+};
+//<------------------PAGINACION FIN
+
+
+
+/*---------------------------POST----------------------------- */
+
 exports.insertUsuarioReturnId = function (req, res) {
 
     var pool = new Pool({
@@ -240,7 +555,7 @@ exports.insertUsuarioReturnId = function (req, res) {
             console.log("Personas_id:" + personas_id);
             await client.query('BEGIN')
 
-            const { rows } = await client.query(qUsuarios.insertUsuarioReturnId, [nomb_usr, usuario, debug, personas_id]); 
+            const { rows } = await client.query(qUsuarios.insertUsuarioReturnId, [nomb_usr, usuario, debug, personas_id]);
 
             await client.query('COMMIT')
             res.status(200).send({ "mensaje": "El USUARIO fue guardado exitosamente", "id": rows[0].id });
@@ -334,97 +649,10 @@ exports.actualizarDatosUsuarios = function (req, res) {
 
 
 
-
-exports.getDatosUsuariosCargados = function (req, res) {
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        console.log("ID_USUARIO: " + req.params.id_usuario);
-        try {
-            (async () => {
-                respuesta = await pool.query(qUsuarios.getDatosUsuariosCargados, [req.params.id])
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
-    }
-};
+/*---------------------------PUT----------------------------- */
 
 
-exports.getPerfilesAsignados = function (req, res) {
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        console.log("ID_USUARIO: " + req.params.id_usuario);
-        try {
-            (async () => {
-                respuesta = await pool.query(qUsuarios.getPerfilesAsignados, [req.params.id])
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
-    }
-};
-
-exports.getPerfilesSinAsignar = function (req, res) {
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        try {
-            (async () => {
-                respuesta = await pool.query(qUsuarios.getPerfilesSinAsignar, [req.params.id])
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
-    }
-};
-
+/*---------------------------DELETE----------------------------- */
 
 
 exports.deletePerfiles = function (req, res) {

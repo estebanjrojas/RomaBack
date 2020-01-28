@@ -7,6 +7,8 @@ var { Pool } = require('pg');
 const connectionString = configuracion.bd;
 
 
+/* ---------------------------GET---------------------------- */
+
 exports.getEmpleadosTodos = function (req, res) {
 
     try {
@@ -166,6 +168,287 @@ exports.getEmpleadosSinUsuario = function (req, res) {
 
 
 };
+
+
+//-----------> PAGINACION INICIO :
+exports.getCantidadPaginasEmpleados = function (req, res) {
+    try {
+        let query = ``;
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+
+        try {
+            (async () => {
+                query = ` 
+                SELECT 
+                    count(*) as cantidad_registros,
+                    (count(*)/5 )+ (case when count(*) % 5 >0 then 1 else 0 end) as cantidad_paginas
+                FROM (
+                    SELECT em.id as empleados_id
+                        , em.personas_id
+                        , em.legajo
+                        , em.fecha_ingreso
+                        , em.descripcion
+                        , gdt(3, em.oficina) as oficina
+                        , ep.id as empresas_id
+                        , ep.razon_social as empresa_razon_social
+                        , ep.nombre_fantasia as empresa_nombre_fantasia
+                        , ps.*
+                    FROM roma.empleados em
+                    JOIN personas ps ON em.personas_id = ps.id
+                    JOIN roma.empresas ep ON em.empresas_id = ep.id
+                )x
+                `;
+                console.log(query);
+                respuesta = await pool.query(query).then(resp => {
+                    console.log(JSON.stringify(resp.rows));
+                    res.status(200).send({ "regCantidadPaginas": resp.rows[0] });
+                }).catch(err => {
+                    console.error("ERROR", err.stack);
+                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+};
+
+exports.getCantidadPaginasEmpleadosTxt = function (req, res) {
+    try {
+        let query = ``;
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        let parametrosBusqueda = ``;
+        let habilitarBusquedaNombre = parseInt(req.params.busca_nombre);
+        let habilitarBusquedaDocumento = parseInt(req.params.busca_documento);
+        let habilitarBusquedaFechaNac = parseInt(req.params.busca_fechanac);
+        let habilitarBusquedaOficina = parseInt(req.params.busca_oficina);
+        if ((habilitarBusquedaNombre + habilitarBusquedaDocumento +
+            habilitarBusquedaFechaNac + habilitarBusquedaOficina) > 0) {
+            parametrosBusqueda = parametrosBusqueda + ` WHERE   `;
+            if (habilitarBusquedaNombre == 1) {
+                parametrosBusqueda = parametrosBusqueda + `ps.apellido::varchar ||', '|| ps.nombre::varchar ilike '%` + req.params.txt + `%'`;
+            }
+            if (habilitarBusquedaDocumento == 1) {
+                if (habilitarBusquedaNombre == 0) {
+                    parametrosBusqueda = parametrosBusqueda + `ps.nro_doc::varchar ilike '%` + req.params.txt + `%'`;
+                } else {
+                    parametrosBusqueda = parametrosBusqueda + `OR ps.nro_doc::varchar ilike '%` + req.params.txt + `%'`;
+                }
+            }
+            if (habilitarBusquedaFechaNac == 1) {
+                if ((habilitarBusquedaNombre + habilitarBusquedaDocumento) == 0) {
+                    parametrosBusqueda = parametrosBusqueda + `ps.fecha_nac::varchar ilike '%` + req.params.txt + `%'`;
+                } else {
+                    parametrosBusqueda = parametrosBusqueda + `OR ps.fecha_nac::varchar ilike '%` + req.params.txt + `%'`;
+                }
+            }
+            if (habilitarBusquedaOficina == 1) {
+                if ((habilitarBusquedaNombre + habilitarBusquedaDocumento + habilitarBusquedaFechaNac) == 0) {
+                    parametrosBusqueda = parametrosBusqueda + `tab.descrip::varchar ilike '%` + req.params.txt + `%'`;
+                } else {
+                    parametrosBusqueda = parametrosBusqueda + `OR tab.descrip::varchar ilike '%` + req.params.txt + `%'`;
+                }
+            }
+        }
+        try {
+            (async () => {
+                query = ` 
+                SELECT 
+                    count(*) as cantidad_registros,
+                    (count(*)/5 )+ (case when count(*) % 5 >0 then 1 else 0 end) as cantidad_paginas
+                FROM (
+                    SELECT 
+                        em.id as empleados_id
+                        , em.personas_id
+                        , em.legajo
+                        , em.fecha_ingreso
+                        , em.descripcion
+                        , tab.descrip as oficina
+                        , ep.id as empresas_id
+                        , ep.razon_social as empresa_razon_social
+                        , ep.nombre_fantasia as empresa_nombre_fantasia
+                        , ps.*
+                    FROM roma.empleados em
+                    JOIN personas ps ON em.personas_id = ps.id
+                    JOIN roma.empresas ep ON em.empresas_id = ep.id
+                    JOIN tabgral tab ON em.oficina = tab.codigo AND tab.nro_tab = 3
+                    `+ parametrosBusqueda + `
+                )x `;
+                console.log(query);
+                respuesta = await pool.query(query).then(resp => {
+                    console.log(JSON.stringify(resp.rows));
+                    res.status(200).send({ "regCantidadPaginas": resp.rows[0] });
+                }).catch(err => {
+                    console.error("ERROR", err.stack);
+                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+};
+
+exports.getEmpleados = function (req, res) {
+    try {
+        let query = ``;
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+
+        try {
+            (async () => {
+                query = ` 
+                SELECT 
+                    em.id as empleados_id
+                    , em.personas_id
+                    , em.legajo
+                    , em.fecha_ingreso
+                    , em.descripcion
+                    , tab.descrip as oficina
+                    , ep.id as empresas_id
+                    , ep.razon_social as empresa_razon_social
+                    , ep.nombre_fantasia as empresa_nombre_fantasia
+                    , ps.*
+                FROM roma.empleados em
+                JOIN personas ps ON em.personas_id = ps.id
+                JOIN roma.empresas ep ON em.empresas_id = ep.id
+                JOIN tabgral tab ON em.oficina = tab.codigo AND tab.nro_tab = 3
+                ORDER BY ps.apellido, ps.nombre
+                OFFSET (5* ((CASE 
+                    WHEN `+ req.params.paginaActual + `>` + req.params.cantidadPaginas + ` THEN ` + req.params.cantidadPaginas + ` 
+                    WHEN `+ req.params.paginaActual + `<1 THEN 1 
+                    ELSE `+ req.params.paginaActual + ` END) -1))
+                LIMIT 5 `;
+                console.log(query);
+                respuesta = await pool.query(query).then(resp => {
+                    console.log(JSON.stringify(resp.rows));
+                    res.status(200).send(resp.rows);
+                }).catch(err => {
+                    console.error("ERROR", err.stack);
+                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+};
+
+exports.getEmpleadosTxt = function (req, res) {
+    try {
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        let query = ``;
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        let parametrosBusqueda = ``;
+        let habilitarBusquedaNombre = parseInt(req.params.busca_nombre);
+        let habilitarBusquedaDocumento = parseInt(req.params.busca_documento);
+        let habilitarBusquedaFechaNac = parseInt(req.params.busca_fechanac);
+        let habilitarBusquedaOficina = parseInt(req.params.busca_oficina);
+        if ((habilitarBusquedaNombre + habilitarBusquedaDocumento +
+            habilitarBusquedaFechaNac + habilitarBusquedaOficina) > 0) {
+            parametrosBusqueda = parametrosBusqueda + ` WHERE   `;
+            if (habilitarBusquedaNombre == 1) {
+                parametrosBusqueda = parametrosBusqueda + `ps.apellido::varchar ||', '|| ps.nombre::varchar ilike '%` + req.params.txt + `%'`;
+            }
+            if (habilitarBusquedaDocumento == 1) {
+                if (habilitarBusquedaNombre == 0) {
+                    parametrosBusqueda = parametrosBusqueda + `ps.nro_doc::varchar ilike '%` + req.params.txt + `%'`;
+                } else {
+                    parametrosBusqueda = parametrosBusqueda + `OR ps.nro_doc::varchar ilike '%` + req.params.txt + `%'`;
+                }
+            }
+            if (habilitarBusquedaFechaNac == 1) {
+                if ((habilitarBusquedaNombre + habilitarBusquedaDocumento) == 0) {
+                    parametrosBusqueda = parametrosBusqueda + `ps.fecha_nac::varchar ilike '%` + req.params.txt + `%'`;
+                } else {
+                    parametrosBusqueda = parametrosBusqueda + `OR ps.fecha_nac::varchar ilike '%` + req.params.txt + `%'`;
+                }
+            }
+            if (habilitarBusquedaOficina == 1) {
+                if ((habilitarBusquedaNombre + habilitarBusquedaDocumento + habilitarBusquedaFechaNac) == 0) {
+                    parametrosBusqueda = parametrosBusqueda + `tab.descrip::varchar ilike '%` + req.params.txt + `%'`;
+                } else {
+                    parametrosBusqueda = parametrosBusqueda + `OR tab.descrip::varchar ilike '%` + req.params.txt + `%'`;
+                }
+            }
+        }
+        try {
+            (async () => {
+                query = ` 
+                SELECT 
+                    em.id as empleados_id
+                    , em.personas_id
+                    , em.legajo
+                    , em.fecha_ingreso
+                    , em.descripcion
+                    , tab.descrip as oficina
+                    , ep.id as empresas_id
+                    , ep.razon_social as empresa_razon_social
+                    , ep.nombre_fantasia as empresa_nombre_fantasia
+                    , ps.*
+                FROM roma.empleados em
+                JOIN personas ps ON em.personas_id = ps.id
+                JOIN roma.empresas ep ON em.empresas_id = ep.id
+                JOIN tabgral tab ON em.oficina = tab.codigo AND tab.nro_tab = 3
+                `+ parametrosBusqueda + `
+                ORDER BY ps.apellido, ps.nombre
+                OFFSET (5* ((CASE 
+                    WHEN `+ req.params.paginaActual + `>` + req.params.cantidadPaginas + ` THEN ` + req.params.cantidadPaginas + ` 
+                    WHEN `+ req.params.paginaActual + `<1 THEN 1 
+                    ELSE `+ req.params.paginaActual + ` END)-1))
+                LIMIT 5 `;
+                console.log(query);
+                respuesta = await pool.query(query).then(resp => {
+                    console.log(JSON.stringify(resp.rows));
+                    res.status(200).send(resp.rows);
+                }).catch(err => {
+                    console.error("ERROR", err.stack);
+                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+                });
+                return respuesta;
+
+            })()
+
+        } catch (error) {
+            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        }
+
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+    }
+};
+//<------------------PAGINACION FIN
+
+
+/* ---------------------------POST---------------------------- */
 
 exports.insertEmpleadoReturnId = function (req, res) {
 
@@ -473,7 +756,7 @@ exports.guardarEmpleadoPersonaDomicilio = function (req, res) {
                                 console.log("Ocurrio un error al guardar la persona: " + err3);
                                 client.query('ROLLBACK');
                             };
-                            
+
                             if (personas_id == undefined || personas_id == 'null') { personas_id = res3.rows[0].id; }
                             client.query(query3, (err4, res4) => {
                                 if (err4) {
@@ -482,7 +765,7 @@ exports.guardarEmpleadoPersonaDomicilio = function (req, res) {
                                 }
                                 client.query('COMMIT');
                             });
-    
+
                         });
 
                     });
@@ -499,3 +782,12 @@ exports.guardarEmpleadoPersonaDomicilio = function (req, res) {
         }
     })().catch(e => console.error(e.stack))
 };
+
+
+
+/* ---------------------------PUT---------------------------- */
+
+
+
+
+/* ---------------------------DELETE---------------------------- */
