@@ -7,6 +7,7 @@ const middleware = require("../utillities/jwtValidaciones");
 router.route('/getVentasTodas/').get(middleware.checkToken, Ctrl.getVentasTodas);
 router.route('/getVentasBusqueda/:texto_busqueda').get(middleware.checkToken, Ctrl.getVentasBusqueda);
 router.route('/getVentaPorId/:ventas_id').get(middleware.checkToken, Ctrl.getVentaPorId);
+router.route('/getDetalleVentaPorVentasId/:ventas_id').get(middleware.checkToken, Ctrl.getDetalleVentaPorVentasId);
 //------> Paginación Inicio
 router.route('/getCantidadPaginasVentas/:busca_fecha/:busca_nombre/:busca_vendedor/:busca_monto').get(middleware.checkToken, Ctrl.getCantidadPaginasVentas);
 router.route('/getCantidadPaginasVentas/:busca_fecha/:busca_nombre/:busca_vendedor/:busca_monto/:txt').get(middleware.checkToken, Ctrl.getCantidadPaginasVentasTxt);

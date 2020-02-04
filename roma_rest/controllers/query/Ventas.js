@@ -68,6 +68,17 @@ WHERE v.id = $1
 ORDER BY fecha desc, v.id;
 `;
 
+
+exports.getDetalleVentaPorVentasId = `
+SELECT vd.id as ventas_detalle_id, vd.cantidad
+    , vd.monto as monto_unidad, vd.subtotal
+	, pr.codigo, pr.nombre, pr.descripcion, pr.descripcion_factura
+	, gdt(7, pr.tipo_producto) as tipo_producto
+FROM roma.ventas_detalle vd
+JOIN roma.productos pr ON vd.productos_id = pr.id
+WHERE vd.ventas_id = $1;
+`;
+
 exports.insertReturnId = `
 INSERT INTO roma.ventas(fecha, monto_total, empresas_id, empleados_id, clientes_id)
 VALUES(now()::date, $1, $2, $3, $4)
