@@ -22,7 +22,7 @@ WHERE pv.id = $1
 `;
 
 exports.getCaracteristicasPuntosVenta = `
-SELECT *, gdt(6, tipo_comprobante) as descripcion 
+SELECT *, gdt(5, tipo_comprobante) as descripcion 
 FROM roma.puntos_venta_tipo_comprobantes             
 WHERE puntos_venta_id = $1
 `;

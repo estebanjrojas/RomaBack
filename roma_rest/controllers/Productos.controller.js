@@ -268,6 +268,7 @@ exports.getProductosPorCategoriaCampoBusqueda = function (req, res) {
             (async () => {
                 respuesta = await pool.query(qProductos.getProductosPorCategoriaCampoBusqueda, [req.params.categorias_id, req.params.campo_buscar, req.params.texto_buscar])
                     .then(resp => {
+                        console.log(`getProductosPorCategoriaCampoBusqueda(${req.params.categorias_id}, ${req.params.campo_buscar}, ${req.params.texto_buscar})`);
                         console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
                     }).catch(err => {

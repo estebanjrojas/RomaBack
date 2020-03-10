@@ -16,6 +16,8 @@ router.route('/getCantidadPaginasProductos/:busca_codigo/:busca_nombre/:busca_de
 router.route('/getCantidadPaginasProductos/:busca_codigo/:busca_nombre/:busca_descripcion/:busca_categoria/:txt').get(middleware.checkToken, Ctrl.getCantidadPaginasProductosTxt);
 router.route('/getProductos/:paginaActual/:cantidadPaginas/:busca_codigo/:busca_nombre/:busca_descripcion/:busca_categoria').get(middleware.checkToken, Ctrl.getProductos);
 router.route('/getProductos/:paginaActual/:cantidadPaginas/:busca_codigo/:busca_nombre/:busca_descripcion/:busca_categoria/:txt').get(middleware.checkToken, Ctrl.getProductosTxt);
+router.route('/getImagenesProductos/:id').get(middleware.checkToken, Ctrl.getImagenesProductos);
+router.route('/getProductosPorCategoriaCampoBusqueda/:categorias_id/:campo_buscar/:texto_buscar').get(middleware.checkToken, Ctrl.getProductosPorCategoriaCampoBusqueda);
 
 //POST
 router.route('/insertProductoReturnId/').post(middleware.checkToken, Ctrl.insertProductoReturnId);
@@ -32,6 +34,5 @@ router.route('/actualizarFechaHastaPrecio').put(Ctrl.actualizarFechaHastaPrecio)
 router.route('/eliminarCaracteristicasProductos/:productos_id').delete(middleware.checkToken, Ctrl.eliminarCaracteristicasProductos);
 router.route('/eliminarImagenesProductos/:productos_id').delete(middleware.checkToken, Ctrl.eliminarImagenesProductos);
 router.route('/insertEmpleadoPersonaDomicilio/').post(middleware.checkToken, Ctrl.insertEmpleadoPersonaDomicilio);
-router.route('/getImagenesProductos/:id').get(middleware.checkToken, Ctrl.getImagenesProductos);
-router.route('/getProductosPorCategoriaCampoBusqueda/:categorias_id/:campo_buscar/:texto_buscar').get(middleware.checkToken, Ctrl.getProductosPorCategoriaCampoBusqueda);
+
 module.exports = router;
