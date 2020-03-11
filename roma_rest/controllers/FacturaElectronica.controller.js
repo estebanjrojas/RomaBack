@@ -74,6 +74,76 @@ facturaRechazada = async function(facturas_id, mensaje){
     }
 };
 
+guardarFacturaAprobada = async function(facturas_id, datos) {
+    let respuesta_afip_id = -1;
+    const cuit = datos['FeCabResp'].Cuit;
+    const ptovta = datos['FeCabResp'].PtoVta;
+    const cbtetipo = datos['FeCabResp'].CbteTipo;
+    const fchproceso = datos['FeCabResp'].FchProceso;
+    const cantreg = datos['FeCabResp'].CantReg;
+    const resultado = datos['FeCabResp'].Resultado;
+    const reproceso = datos['FeCabResp'].Reproceso;
+
+    const concepto = datos['FeDetResp'].FECAEDetResponse.Concepto;
+    const doctipo = datos['FeDetResp'].FECAEDetResponse.DocTipo;
+    const docnro = datos['FeDetResp'].FECAEDetResponse.DocNro;
+    const cbtedesde = datos['FeDetResp'].FECAEDetResponse.CbteDesde;
+    const cbtehasta = datos['FeDetResp'].FECAEDetResponse.CbteHasta;
+    const cbtefch = datos['FeDetResp'].FECAEDetResponse.CbteFch;
+    const dresultado = datos['FeDetResp'].FECAEDetResponse.Resultado;
+    const cae = datos['FeDetResp'].FECAEDetResponse.CAE;
+    const caeFchVto = datos['FeDetResp'].FECAEDetResponse.CAEFchVto;
+    try {
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        try {
+            await pool.query(qFacturas.insertRespuestaAprobada, [facturas_id, 
+            cuit, ptovta, cbtetipo, fchproceso, cantreg, resultado, reproceso,
+            concepto, doctipo, docnro, cbtedesde, cbtehasta, cbtefch, dresultado, 
+            cae, caeFchVto])
+                    .then(resp => {
+                        respuesta_afip_id = resp.rows[0].respuesta_afip_id;
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                    });
+            return respuesta_afip_id;
+
+        } catch (error) {
+            console.error("ERROR", error.stack);
+            return -1;
+        }
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+    }
+
+}
+
+
+setCaeVtoFacturaAprobada = async function(facturas_id){
+    let respuesta = -1;
+    try {
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        try {
+            await pool.query(qFacturas.setCaeFchVto, [facturas_id])
+                    .then(resp => {
+                        respuesta = resp.rows[0].respuesta;
+                    }).catch(err => {
+                        console.error("ERROR", err.stack);
+                    });
+            return respuesta;
+
+        } catch (error) {
+            console.error("ERROR", error.stack);
+            return -1;
+        }
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+    }
+};
+
 getDatosComprobante = async function(facturas_id) {
     console.log(`getDatosComprobante(${facturas_id})!!!`);
     try {
@@ -131,7 +201,10 @@ exports.generarFacturaElectronica = async function(req, res) {
     console.log(data);
     try{
         const resAfip = await afip.ElectronicBilling.createVoucher(data, true);
-        res.send(resAfip);}
+         await guardarFacturaAprobada(gen, resAfip);
+         await setCaeVtoFacturaAprobada(gen);
+        res.send("Factura Aprobada");
+    }
     catch(err) {
         const rech = await facturaRechazada(gen, err.message);
         if(rech != undefined) {
