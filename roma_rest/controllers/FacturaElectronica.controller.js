@@ -5,7 +5,8 @@ var { Pool } = require('pg');
 const connectionString = configuracion.bd;
 const AfipAPI = require('@afipsdk/afip.js');
 const afip = new AfipAPI({ CUIT: configuracion.cuit_factura_electronica
-                        , production: false
+                        , production: configuracion.ambiente_produccion_factura_electronica
+                        , res_folder: './utillities/certificadosFE'
                         , cert: 'certificadoEsteban.pem'
                         , key: 'EstebanKEY.key' });
 

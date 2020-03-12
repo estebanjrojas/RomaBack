@@ -58,12 +58,27 @@ SELECT v.id as ventas_id
     , v.monto_total as monto
     , CASE WHEN v.fecha_anulacion is not null THEN true ELSE false END as anulada
 	, v.fecha_anulacion
-	, v.usuario_anulacion
+    , v.usuario_anulacion
+    , fac.id is not null as facturada
+	, (fac.cae is not null OR fac.cai is not null) as aprobada
+	, fac.id as facturas_id
+	, gdt(5, fac.tipo_factura) as tipo_factura
+	, fac.punto_venta_factura
+	, fac.numero_factura
+	, fac.fecha_emision as fecha_emision_factura
+	, fac.monto_total as monto_total_factura
+	, fac.monto_neto as monto_neto_factura
+	, fac.monto_iva as monto_iva_factura
+	, fac.cae
+	, fac.fecha_vencimiento_cae
+	, fac.cai
+	, fac.fecha_vencimiento_cai
 FROM roma.ventas v 
 JOIN roma.clientes cli ON v.clientes_id = cli.id
 JOIN personas per ON cli.personas_id = per.id
 JOIN roma.empleados emp ON v.empleados_id = emp.id
 JOIN personas per2 ON emp.personas_id = per2.id
+LEFT JOIN roma.facturas fac ON v.id = fac.ventas_id
 WHERE v.id = $1
 ORDER BY fecha desc, v.id;
 `;
