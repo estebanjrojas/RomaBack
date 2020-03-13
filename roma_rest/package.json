@@ -18,11 +18,13 @@
     "dustjs-helpers": "*",
     "dustjs-linkedin": "*",
     "express": "*",
+    "handlebars": "^4.7.3",
     "ip": "^1.1.5",
     "jsonwebtoken": "^8.4.0",
     "method-override": "^3.0.0",
     "nodemon": "^1.18.4",
     "pg": "*",
+    "puppeteer": "^2.1.1",
     "soap": "^0.25.0",
     "swagger-ui-express": "^4.0.2"
   }

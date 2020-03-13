@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title></title>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css" rel="stylesheet" media="all">
+    
+    /* Base ------------------------------ */
+    
+    @import url("https://fonts.googleapis.com/css?family=Nunito+Sans:400,700&display=swap");
+    body {
+      width: 100% !important;
+      height: 100%;
+      margin: 0;
+      -webkit-text-size-adjust: none;
+    }  
+
+    .container {
+        border: solid 1px #000;
+        margin: 7px;
+    }
+
+    .table {
+        width: 90%;
+    }
+
+    </style>
+
+  </head>
+  <body>
+      <div class="container">
+          <div class="row">
+            <div class="col-6">
+                <h1>ROMA</h1>
+                <p>Ra&oacute;n Social: {{razon_social}}</p>
+                <p>CUIT: {{cuit_empresa}}</p>
+                <p>Email: {{email_empresa}}</p>
+              </div>
+              <div class="col-6">
+                  <p><strong>{{tipo_factura}} </strong>{{punto_venta}} - {{numero}}</p>
+                  <strong>Fecha de Emisi&oacute;n </strong> {{fecha_emision}}</p>
+                  <strong>Fecha de Vencimiento </strong> {{fecha_vencimiento}}</p>
+              </div> 
+          </div>
+          <hr>
+          <div class="row">
+            <div class="col-12">
+                Cobrese al sr/a {{nombre_cliente}} la suma de ${{monto_total}} por los items detallados a continuaci&oacute;n:
+            </div>
+          </div>
+              <table class="table table-sm m-4">
+                <thead class="thead-dark">
+                    <th>Producto</th>
+                    <th class="text-right">Subtotal Neto</th>
+                    <th class="text-right">Subtotal IVA</th>
+                    <th class="text-right">Subtotal Bruto</th>
+                </thead>
+                <tbody>
+                    {{#each detalle_factura}}
+                    <tr>
+                        <td width="60%">{{producto}}</td>
+                        <td class="text-right">{{subtotal_neto}}</td>
+                        <td class="text-right">{{subtotal_iva}}</td>
+                        <td class="text-right">{{subtotal_bruto}}</td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td class="text-right" width="60%"></td>
+                        <td class="text-right"><strong>{{monto_neto}}</strong></td>
+                        <td class="text-right"><strong>{{monto_iva}}</strong></td>
+                        <td class="text-right"><strong>{{monto_total}}</strong></td>
+                    </tr>
+                </tfoot>
+              </table>
+              <hr>
+ 
+  </body>
+</html>
