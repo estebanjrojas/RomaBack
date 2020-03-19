@@ -4,6 +4,6 @@ var Ctrl = require("../controllers/FacturasImpresion.controller");
 const middleware = require("../utillities/jwtValidaciones");
 
 
-router.route('/sendPDF').get(Ctrl.sendPDF);
+router.route('/generarFacturaPDF/:facturas_id').get(Ctrl.generarFacturaPDF);
 
 module.exports = router;

@@ -35,15 +35,15 @@
   </head>
   <body>
       <div class="container">
-          <div class="row">
+          <div class="row p-0">
             <div class="col-6">
                 <h1>ROMA</h1>
-                <p>Ra&oacute;n Social: {{razon_social}}</p>
+                <p>Raz&oacute;n Social: {{razon_social}}</p>
                 <p>CUIT: {{cuit_empresa}}</p>
                 <p>Email: {{email_empresa}}</p>
               </div>
-              <div class="col-6">
-                  <p><strong>{{tipo_factura}} </strong>{{punto_venta}} - {{numero}}</p>
+              <div class="col-6 text-right">
+                  <h3><strong>{{tipo_factura}} </strong>{{punto_venta}} - {{numero}}</h3>
                   <strong>Fecha de Emisi&oacute;n </strong> {{fecha_emision}}</p>
                   <strong>Fecha de Vencimiento </strong> {{fecha_vencimiento}}</p>
               </div> 
@@ -57,6 +57,8 @@
               <table class="table table-sm m-4">
                 <thead class="thead-dark">
                     <th>Producto</th>
+                    <th class="text-right">Cantidad</th>
+                    <th class="text-right">Precio Uni.</th>
                     <th class="text-right">Subtotal Neto</th>
                     <th class="text-right">Subtotal IVA</th>
                     <th class="text-right">Subtotal Bruto</th>
@@ -64,7 +66,9 @@
                 <tbody>
                     {{#each detalle_factura}}
                     <tr>
-                        <td width="60%">{{producto}}</td>
+                        <td width="45%">{{producto}}</td>
+                        <td class="text-right">{{cantidad}}</td>
+                        <td class="text-right">{{precio_uni}}</td>
                         <td class="text-right">{{subtotal_neto}}</td>
                         <td class="text-right">{{subtotal_iva}}</td>
                         <td class="text-right">{{subtotal_bruto}}</td>
@@ -73,7 +77,9 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td class="text-right" width="60%"></td>
+                        <td class="text-right" width="45%"></td>
+                        <td class="text-right"><strong></strong></td>
+                        <td class="text-right"><strong></strong></td>
                         <td class="text-right"><strong>{{monto_neto}}</strong></td>
                         <td class="text-right"><strong>{{monto_iva}}</strong></td>
                         <td class="text-right"><strong>{{monto_total}}</strong></td>
@@ -81,6 +87,15 @@
                 </tfoot>
               </table>
               <hr>
+              <div class="row">
+                <div class="col-4 offset-8 text-right">
+                  <img src="./imagenes/afip_logo.png" class="img-fluid" alt="Responsive image">
+                </div>
+                <div class="col-4 offset-8 text-right">
+                  <p><strong>CAE: </strong>{{cae}}</p>
+                  <p><strong>Vencimiento del CAE: </strong>{{vencimiento_cae}}</p>
+                </div>
+              </div>
  
   </body>
 </html>
