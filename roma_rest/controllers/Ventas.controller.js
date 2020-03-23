@@ -20,7 +20,7 @@ exports.getVentasTodas = function (req, res) {
             (async () => {
                 respuesta = await pool.query(qVentas.getVentasTodas)
                     .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
+                       // console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
                     }).catch(err => {
                         console.error("ERROR", err.stack);
@@ -52,7 +52,7 @@ exports.getVentasBusqueda = function (req, res) {
             (async () => {
                 respuesta = await pool.query(qVentas.getVentasBusqueda, [req.params.texto_busqueda])
                     .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
+                      //  console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
                     }).catch(err => {
                         console.error("ERROR", err.stack);
@@ -83,7 +83,7 @@ exports.getVentaPorId = function (req, res) {
             (async () => {
                 respuesta = await pool.query(qVentas.getVentaPorId, [req.params.ventas_id])
                     .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
+                      //  console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
                     }).catch(err => {
                         console.error("ERROR", err.stack);
@@ -113,7 +113,7 @@ exports.getDetalleVentaPorVentasId = function (req, res) {
             (async () => {
                 respuesta = await pool.query(qVentas.getDetalleVentaPorVentasId, [req.params.ventas_id])
                     .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
+                     //   console.log(JSON.stringify(resp.rows));
                         res.status(200).send(JSON.stringify(resp.rows));
                     }).catch(err => {
                         console.error("ERROR", err.stack);
@@ -172,7 +172,7 @@ exports.getCantidadPaginasVentas = function (req, res) {
                 `;
                 console.log(query);
                 respuesta = await pool.query(query).then(resp => {
-                    console.log(JSON.stringify(resp.rows));
+                 //   console.log(JSON.stringify(resp.rows));
                     res.status(200).send({ "regCantidadPaginas": resp.rows[0] });
                 }).catch(err => {
                     console.error("ERROR", err.stack);
@@ -260,7 +260,7 @@ exports.getCantidadPaginasVentasTxt = function (req, res) {
                 )x `;
                 console.log(query);
                 respuesta = await pool.query(query).then(resp => {
-                    console.log(JSON.stringify(resp.rows));
+                   // console.log(JSON.stringify(resp.rows));
                     res.status(200).send({ "regCantidadPaginas": resp.rows[0] });
                 }).catch(err => {
                     console.error("ERROR", err.stack);
@@ -313,9 +313,9 @@ exports.getVentas = function (req, res) {
                     WHEN `+ req.params.paginaActual + `<1 THEN 1 
                     ELSE `+ req.params.paginaActual + ` END) -1))
                 LIMIT 5 `;
-                console.log(query);
+             //   console.log(query);
                 respuesta = await pool.query(query).then(resp => {
-                    console.log(JSON.stringify(resp.rows));
+               //     console.log(JSON.stringify(resp.rows));
                     res.status(200).send(resp.rows);
                 }).catch(err => {
                     console.error("ERROR", err.stack);
@@ -401,9 +401,9 @@ exports.getVentasTxt = function (req, res) {
                     WHEN `+ req.params.paginaActual + `<1 THEN 1 
                     ELSE `+ req.params.paginaActual + ` END)-1))
                 LIMIT 5 `;
-                console.log(query);
+            //    console.log(query);
                 respuesta = await pool.query(query).then(resp => {
-                    console.log(JSON.stringify(resp.rows));
+                //    console.log(JSON.stringify(resp.rows));
                     res.status(200).send(resp.rows);
                 }).catch(err => {
                     console.error("ERROR", err.stack);
@@ -448,19 +448,19 @@ exports.insertVentaReturningFactura = function (req, res) {
 
             client.query('BEGIN', (err_transaccion, res_transaccion) => {
                 if (err_transaccion) {
-                    console.log('Ocurrio un error iniciando la transaccion: ' + err_transaccion.stack);
+                    console.error('Ocurrio un error iniciando la transaccion: ' + err_transaccion.stack);
                 }
                 //Inicio la Venta
                 client.query(qVentas.insertReturnId, [monto_total, empresas_id, empleados_id, clientes_id], (err_vta, res_vta) => {
                     if (err_vta) {
-                        console.log('Ocurrio un error cargar la venta: ' + err_vta.stack);
+                        console.error('Ocurrio un error cargar la venta: ' + err_vta.stack);
                     }
                     ventas_id = res_vta.rows[0].id;
-                    console.log({ "ventas": ventas_id });
+                 //   console.log({ "ventas": ventas_id });
                     for (let i = 0; i < detalles.length; i++) {
                         client.query(qVentas.insertDetalleReturnId, [detalles[i].cantidad, detalles[i].producto.precio_actual, detalles[i].descuento, detalles[i].subtotal, ventas_id, detalles[i].producto.productos_id], (err_dvta, res_dvta) => {
                             if (err_dvta) {
-                                console.log('Ocurrio un error cargar el detalle de la venta: ' + err_dvta.stack);
+                                console.error('Ocurrio un error cargar el detalle de la venta: ' + err_dvta.stack);
                             }
                         });
 

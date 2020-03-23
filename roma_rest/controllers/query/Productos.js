@@ -78,11 +78,11 @@ FROM roma.productos prod
 LEFT JOIN roma.productos_categorias pcat ON prod.id = pcat.productos_id
 LEFT JOIN roma.precios_productos ppre ON prod.id = ppre.productos_id AND now()::date between ppre.fecha_desde and coalesce(ppre.fecha_hasta, now())::date
 WHERE (pcat.categorias_id = $1 OR $1 = 0)
-AND CASE $2
-    WHEN 'nombre' THEN prod.nombre ilike '%'||$3||'%' END
-    WHEN 'descripcion' THEN prod.descripcion ilike '%'||$3||'%' END
-    WHEN 'descripcion_factura' THEN prod.descripcion_factura ilike '%'||$3||'%' END
-    WHEN 'codigo' THEN prod.codigo ilike '%'||$3||'%' END
+AND CASE 
+    WHEN $2 ilike 'nombre' THEN prod.nombre ilike '%'||$3||'%' 
+    WHEN $2 ilike 'descripcion' THEN prod.descripcion ilike '%'||$3||'%' 
+    WHEN $2 ilike 'descripcion_factura' THEN prod.descripcion_factura ilike '%'||$3||'%' 
+    WHEN $2 ilike 'codigo' THEN prod.codigo ilike '%'||$3||'%' END
 AND coalesce(prod.fecha_hasta, now())::date >= now()::date
 GROUP BY prod.id, prod.codigo, prod.nombre, prod.descripcion, prod.descripcion_factura
 , prod.tipo_producto, prod.fecha_desde, prod.fecha_hasta

@@ -36,7 +36,7 @@ generarFacturaReturnId = async function(ventas_id, tipo_comprobante){
             await pool.query(qFacturas.generarFacturaReturnId, [ventas_id, tipo_comprobante])
                     .then(resp => {
                         facturas_id = resp.rows[0].facturas_id;
-                        console.log(facturas_id);
+                     //   console.log(facturas_id);
                     }).catch(err => {
                         console.error("ERROR", err.stack);
                     });
@@ -146,7 +146,7 @@ setCaeVtoFacturaAprobada = async function(facturas_id){
 };
 
 getDatosComprobante = async function(facturas_id) {
-    console.log(`getDatosComprobante(${facturas_id})!!!`);
+    //console.log(`getDatosComprobante(${facturas_id})!!!`);
     try {
         var pool = new Pool({
             connectionString: connectionString,
@@ -199,7 +199,7 @@ exports.generarFacturaElectronica = async function(req, res) {
     };
 
     
-    console.log(data);
+   // console.log(data);
     try{
         const resAfip = await afip.ElectronicBilling.createVoucher(data, true);
          await guardarFacturaAprobada(gen, resAfip);

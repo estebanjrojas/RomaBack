@@ -55,10 +55,7 @@ exports.insertPersonaReturnId = function (req, res) {
                 , `+ telefono_caracteristica + `, `+ celular_caracteristica + `
                 , `+ domicilios_id + `
                 ) RETURNING id; `)
-        
-            //const insertPhotoText = 'INSERT INTO photos(user_id, photo_url) VALUES ($1, $2)'
-            //const insertPhotoValues = [res.rows[0].id, 's3.bucket.foo']
-            //await client.query(insertPhotoText, insertPhotoValues)
+
             await client.query('COMMIT')
             res.status(200).send({ "mensaje": "La persona se cargo exitosamente", "id":persona[0].id});
         } catch (e) {
@@ -164,7 +161,7 @@ exports.getPersonaPorNroDoc = function (req, res) {
                 FROM personas
                 WHERE tipo_doc = `+req.params.tipo_doc+` AND nro_doc = `+req.params.nro_doc)
                 .then(resp => {
-                    console.log(JSON.stringify(resp.rows));
+                 //   console.log(JSON.stringify(resp.rows));
                     res.status(200).send(JSON.stringify(resp.rows));
                 }).catch(err=>{
                     console.error("ERROR", err.stack);
