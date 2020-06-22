@@ -5,7 +5,7 @@ exports.generarTokenString = `
 exports.solicitarAccesoUsuario = `
     SELECT count(*)>0 as permitir_acceso
     FROM seguridad.usuarios 
-    WHERE pwd_usr = md5($1)
+    WHERE pwd_usr = ENCODE(digest(LOWER($1),'sha256'),'hex')
         AND nomb_usr = $2
         AND habilitado = true
         AND coalesce(fecha_baja, now())>=now();
@@ -13,7 +13,7 @@ exports.solicitarAccesoUsuario = `
 
 exports.cambiarPassword = `
 UPDATE seguridad.usuarios
-        SET pwd_usr= md5($1)
+        SET pwd_usr = ENCODE(digest(LOWER($1),'sha256'),'hex')
 WHERE nomb_usr = $2 RETURNING id;
 `;
 
@@ -55,7 +55,7 @@ WHERE (p.nombre::varchar ilike '%' || $1 || '%'
 
 exports.insertUsuarioReturnId = `
 INSERT INTO seguridad.usuarios (nomb_usr, pwd_usr, usuario, fecha_mov, debug, personas_id)
-VALUES($1, md5('12345'), $2, now(), $3, $4) RETURNING id;
+VALUES($1, ENCODE(digest(LOWER($1),'sha256'),'hex'), $2, now(), $3, $4) RETURNING id;
 `;
 
 exports.insertPerfilesAsignados = `
@@ -64,8 +64,7 @@ VALUES($1, $2)  RETURNING id;
 `;
 
 exports.getDatosUsuariosCargados = `
-SELECT 
-        em.id as empleados_id
+SELECT em.id as empleados_id
     , em.personas_id
     , em.legajo
     , em.fecha_ingreso
