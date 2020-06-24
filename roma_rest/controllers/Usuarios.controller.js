@@ -62,7 +62,7 @@ exports.solicitarAccesoUsuario = async function (req, res) {
 
         }
         else {
-            res.status(400).send(JSON.stringify({ "error": "Usuario y/o contraseña incorrectos" }));
+            res.send(JSON.stringify({ "error": "Usuario y/o contraseña incorrectos" }));
         }
 
     } catch (err) {
@@ -86,7 +86,7 @@ exports.validarPassVieja = async function (req, res) {
             res.status(200).send({ "mensaje": "El password ingresado es correcto", "permitir_acceso": rows[0].permitir_acceso });
         } catch (e) {
             await client.query('ROLLBACK')
-            res.status(400).send({ "mensaje": "El password ingresado no es correcto" });
+            res.send({ "mensaje": "El password ingresado no es correcto" });
             throw e
         } finally {
             client.release()
