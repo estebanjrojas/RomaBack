@@ -10,177 +10,75 @@ var ip = require('ip');
 
 
 //----------------------------------GET----------------------------------//
-
-exports.getClientesTodos = function (req, res) {
-
+exports.getClientesTodos = async function (req, res) {
     try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
         var pool = new Pool({
             connectionString: connectionString,
         });
-        try {
-            (async () => {
-                respuesta = await pool.query(`             
-                SELECT cli.id as clientes_id, cli.fecha_alta, p.id as personas_id, p.* 
-                FROM roma.clientes cli
-                JOIN personas p ON cli.personas_id = p.id  `)
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
-    }
-
-
-};
-
-exports.getClientesBusqueda = function (req, res) {
-
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        try {
-            (async () => {
-                respuesta = await pool.query(`             
-            SELECT cli.id as clientes_id, *
-            FROM roma.clientes cli
-            JOIN personas p ON cli.personas_id = p.id 
-            WHERE (p.nro_doc::varchar ilike '%`+ req.params.texto_busqueda + `%'
-                    OR p.nombre::varchar ilike '%`+ req.params.texto_busqueda + `%'
-                    OR p.apellido ilike '%`+ req.params.texto_busqueda + `%')`
-                )
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
-    }
-
-};
-
-
-
-exports.getClientesWhere = function (req, res) {
-
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        try {
-            (async () => {
-                respuesta = await pool.query(`             
-                SELECT cli.id as clientes_id, cli.fecha_alta
-                    , p.*, gdt(1, p.tipo_doc) as tipo_doc_descrip
-                    , dm.calle, dm.numero as domicilio_numero
-                    , dm.piso, dm.depto, dm.manzana, dm.lote, dm.block, dm.barrio, dm.ciudades_id
-                    , cl.codigo_postal, cl.nombre as ciudad_nombre
-                    , pv.id as provincias_id, pv.nombre as provincias_nombre
-                    , pc.id as paices_id, pc.nombre as pais_nombre
-                FROM roma.clientes cli
-                JOIN personas p ON cli.personas_id = p.id
-                LEFT JOIN domicilios dm ON p.domicilios_id = dm.id
-                LEFT JOIN ciudades cl ON dm.ciudades_id = cl.id
-                LEFT JOIN provincias pv ON cl.provincias_id = pv.id
-                LEFT JOIN paises pc ON pv.paises_id = pc.id 
-                WHERE ${req.params.campo_busqueda}::varchar ilike '%${req.params.texto_buscar}%'`
-                )
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
+        await pool.query(qClientes.getClientesTodos, [])
+            .then(resp => {
+                res.status(200).send(JSON.stringify(resp.rows));
+            }).catch(err => {
+                console.error("ERROR", err.stack);
+                res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+            });
     } catch (err) {
         res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
     }
-
 };
 
-
-
-exports.getDatosClientePorId = function (req, res) {
-
+exports.getClientesBusqueda = async function (req, res) {
     try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
         var pool = new Pool({
             connectionString: connectionString,
         });
-        try {
-            (async () => {
-                respuesta = await pool.query(`             
-                SELECT 
-                      cli.id as clientes_id
-                    , cli.personas_id
-                    , ps.*
-                    , dom.*
-                    , ciu.id as ciudades_id
-                    , ciu.nombre as ciudad_nombre
-                    , prov.id as provincias_id
-                    , ps.id as personas_id
-                    , dom.id as domicilios_id
-                FROM roma.clientes cli
-                LEFT JOIN personas ps ON cli.personas_id = ps.id
-                LEFT JOIN domicilios dom ON ps.domicilios_id = dom.id
-                LEFT JOIN ciudades ciu ON dom.ciudades_id = ciu.id
-				LEFT JOIN provincias prov ON ciu.provincias_id = prov.id
-                WHERE cli.id =  `+ req.params.id)
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
+        await pool.query(qClientes.getClientesBusqueda, [req.params.texto_busqueda])
+            .then(resp => {
+                res.status(200).send(JSON.stringify(resp.rows));
+            }).catch(err => {
+                console.error("ERROR", err.stack);
+                res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+            });
     } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
     }
-
-
 };
+
+exports.getClientesWhere = async function (req, res) {
+    try {
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        await pool.query(qClientes.getClientesWhere, [req.params.campo_busqueda, req.params.texto_buscar])
+            .then(resp => {
+                res.status(200).send(JSON.stringify(resp.rows));
+            }).catch(err => {
+                console.error("ERROR", err.stack);
+                res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+            });
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+    }
+};
+
+
+exports.getDatosClientePorId = async function (req, res) {
+    try {
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+        await pool.query(qClientes.getDatosClientePorId, [req.params.id])
+            .then(resp => {
+                res.status(200).send(JSON.stringify(resp.rows));
+            }).catch(err => {
+                console.error("ERROR", err.stack);
+                res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+            });
+    } catch (err) {
+        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+    }
+};
+
 
 
 //-----------> PAGINACION INICIO :
@@ -197,7 +95,7 @@ exports.getCantidadPaginasClientes = function (req, res) {
                 query = ` 
                 SELECT 
                     COUNT(*) as cantidad_registros,
-                    (COUNT(*)/5 )+ (CASE WHEN COUNT(*) % 5 >0 THEN 1 ELSE 0 END) AS cantidad_paginas
+                    (COUNT(*)/20 )+ (CASE WHEN COUNT(*) % 20 >0 THEN 1 ELSE 0 END) AS cantidad_paginas
                 FROM (
                     SELECT cli.id as clientes_id, cli.fecha_alta, p.id as personas_id, p.* 
                     FROM roma.clientes cli
@@ -279,7 +177,7 @@ exports.getCantidadPaginasClientesTxt = function (req, res) {
                 query = ` 
                 SELECT 
                     COUNT(*) as cantidad_registros,
-                    (COUNT(*)/5 )+ (CASE WHEN COUNT(*) % 5 >0 THEN 1 ELSE 0 END) AS cantidad_paginas
+                    (COUNT(*)/20 )+ (CASE WHEN COUNT(*) % 20 >0 THEN 1 ELSE 0 END) AS cantidad_paginas
                 FROM (
                     SELECT cli.id AS clientes_id, cli.fecha_alta, p.id AS personas_id, p.* 
                     FROM roma.clientes cli
@@ -321,11 +219,11 @@ exports.getClientes = function (req, res) {
                 SELECT cli.id as clientes_id, cli.fecha_alta, p.id as personas_id, p.* 
                 FROM roma.clientes cli
                 JOIN personas p ON cli.personas_id = p.id 
-                OFFSET (5* ((CASE 
+                OFFSET (20* ((CASE 
                     WHEN `+ req.params.paginaActual + `>` + req.params.cantidadPaginas + ` THEN ` + req.params.cantidadPaginas + ` 
                     WHEN `+ req.params.paginaActual + `<1 THEN 1 
                     ELSE `+ req.params.paginaActual + ` END) -1))
-                LIMIT 5 `;
+                LIMIT 20 `;
                 console.log(query);
                 respuesta = await pool.query(query).then(resp => {
                     console.log(JSON.stringify(resp.rows));
