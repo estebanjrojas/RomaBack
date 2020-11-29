@@ -120,3 +120,10 @@ exports.insertPreciosProductos = `
 INSERT INTO roma.precios_productos(monto, unidad, fecha_desde, productos_id)
 VALUES($1, $2, now(), $3)
 `;
+
+exports.getNovedadesProductosLimit = `
+SELECT * 
+FROM roma.get_novedades_productos($1, $2)
+ORDER BY _fecha desc, _tipo, _descripcion
+LIMIT $3;
+`;

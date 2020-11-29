@@ -18,6 +18,7 @@ router.route('/getProductos/:paginaActual/:cantidadPaginas/:busca_codigo/:busca_
 router.route('/getProductos/:paginaActual/:cantidadPaginas/:busca_codigo/:busca_nombre/:busca_descripcion/:busca_categoria/:txt').get(middleware.checkToken, Ctrl.getProductosTxt);
 router.route('/getImagenesProductos/:id').get(middleware.checkToken, Ctrl.getImagenesProductos);
 router.route('/getProductosPorCategoriaCampoBusqueda/:categorias_id/:campo_buscar/:texto_buscar').get(middleware.checkToken, Ctrl.getProductosPorCategoriaCampoBusqueda);
+router.route('/getNovedadesProductosLimit/:fecha_desde/:fecha_hasta/:limit').get(middleware.checkToken, Ctrl.getNovedadesProductosLimit);
 
 //POST
 router.route('/insertProductoReturnId/').post(middleware.checkToken, Ctrl.insertProductoReturnId);

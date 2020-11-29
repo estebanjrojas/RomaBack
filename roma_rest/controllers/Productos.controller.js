@@ -573,6 +573,37 @@ exports.getProductosTxt = function (req, res) {
 
 
 
+exports.getNovedadesProductosLimit = async function (req, res) {
+    try {
+    
+        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
+        var pool = new Pool({
+            connectionString: connectionString,
+        });
+
+        respuesta = await pool.query(qProductos.getNovedadesProductosLimit, [req.params.fecha_desde, req.params.fecha_hasta, req.params.limit] )
+            .then(resp => {
+                res.status(200).send(resp.rows);
+            }).catch(err => {
+                
+                console.error("ERROR", err);
+                res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
+            });
+        return respuesta;
+    } catch (error) {
+        res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+    }
+};
+
+
+
+
+
+
+
+
+
+
 //------------------------------POST------------------------------//
 
 exports.insertProductoReturnId = function (req, res) {
