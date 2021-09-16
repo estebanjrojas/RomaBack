@@ -111,6 +111,18 @@ WHERE id not in (
 );
 `;
 
+exports.getCantidadPaginasUsuarios = `
+SELECT 
+    count(*) as cantidad_registros,
+    (count(*)/5 )+ (case when count(*) % 5 >0 then 1 else 0 end) as cantidad_paginas
+FROM (
+    SELECT 
+        * 
+    FROM seguridad.usuarios usr
+    JOIN public.personas ps ON usr.personas_id = ps.id 
+)x
+`;
+
 exports.deletePerfiles = `
 DELETE FROM seguridad.usuarios_perfiles 
 WHERE usuarios_id = $1;

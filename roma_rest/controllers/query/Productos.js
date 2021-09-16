@@ -111,6 +111,21 @@ FROM (
 )x
 `;
 
+exports.getProductos = `
+SELECT p.id as productos_id
+        ,  p.*
+        , pc.*
+        , cat.nombre as nombre_categoria
+        , roma.get_imagen_principal_producto(p.id) as imagen
+FROM roma.productos p
+JOIN roma.productos_categorias pc ON p.id = pc.productos_id
+JOIN roma.categorias cat ON pc.categorias_id = cat.id 
+OFFSET (5* ((CASE 
+    WHEN $1 > $2 THEN  $2 
+    WHEN $1 <1 THEN 1 
+    ELSE $1 END) -1))
+LIMIT 5`;
+
 exports.insertProductosReturningId = `
 INSERT INTO roma.productos (codigo, nombre, descripcion, descripcion_factura, tipo_producto, fecha_desde)
 VALUES($1, $2, $3, $4, $5, now()::date) RETURNING id; 
@@ -127,3 +142,33 @@ FROM roma.get_novedades_productos($1, $2)
 ORDER BY _fecha desc, _tipo, _descripcion
 LIMIT $3;
 `;
+
+exports.insertNuevoPrecioProducto = `
+INSERT INTO roma.precios_productos(monto, fecha_desde, productos_id)
+VALUES($1, now()::date + INTERVAL '1 DAY', $2);
+`;
+
+exports.insertCaracteristicasProducto = `
+INSERT INTO roma.productos_caracteristicas(nombre, descripcion, valor, productos_id)
+VALUES('$1', '$2', '$3', $4);
+`;
+
+exports.eliminarCategoriasProductos = `
+DELETE FROM roma.productos_categorias 
+WHERE productos_id = $1 
+`;
+
+exports.insertCategoriasProducto = `
+INSERT INTO roma.productos_categorias(productos_id, categorias_id)
+VALUES($1, $2);
+`;
+
+exports.actualizarFechaHastaPrecio = `
+UPDATE roma.precios_productos SET fecha_hasta= now()::date WHERE productos_id = $1;`;
+
+exports.eliminarCaracteristicasProductos = `
+DELETE FROM roma.productos_caracteristicas WHERE productos_id = $1;
+`;
+
+exports.eliminarImagenesProductos = `
+DELETE FROM roma.productos_imagenes WHERE productos_id = $1`;

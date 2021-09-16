@@ -1,530 +1,445 @@
 //Conexión a Postgres
 const configuracion = require("../utillities/config");
 let jwt = require('jsonwebtoken');
-var { Pool } = require('pg');
-const connectionString = configuracion.bd;
 const qUsuarios = require("./query/Usuarios.js");
+const poolSrv = require("../services/PoolService");
 
 async function generarTokenString(usuario, identificador) {
     try {
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        var token_generado = '';
-        const client = await pool.connect();
-        await client.query(qUsuarios.generarTokenString, [usuario, identificador], ((err, resp) => {
-            if (err) console.log(err);
-            token_generado = resp.rows[0].token_acceso;
-            console.log("Token Generado en BD: " + token_generado);
-            return token_generado;
-        }))
+        const pool = poolSrv.getInstance().getPool();
+        pool.connect((err, client, release) => {
+            if (err) {
+                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
+            } else {
+                var token_generado = '';
+                client.query(qUsuarios.generarTokenString, [usuario, identificador], (err, resp) => {
+                    release();
+                    if (err) {
+                        res.status(400).send(JSON.stringify({ "mensaje": "Query Error" }));
+                        return;
+                    }
+                    token_generado = resp.rows[0].token_acceso;
+                    return token_generado;
+                });
+            }
+        })
+    } catch (err) {
+        res.status(400).send({ 'error': `${err}` });
     }
-    catch (error) {
-        return "ERROR: " + error;
-    }
+
 }
 
 
 function generarToken(usuario, token_bd, llave_privada) {
     try {
-        console.log(process.env);
         let token = jwt.sign({ "token": token_bd }, llave_privada, {
             subject: usuario,
             expiresIn: 60 * 60 * 24 // expira en 24 horas
         })
-        console.log(token);
         return token;
     } catch (err) {
-        console.log(err);
+        throw err;
     }
-
 }
 
 /*---------------------------GET----------------------------- */
 
-exports.solicitarAccesoUsuario = async function (req, res) {
+exports.solicitarAccesoUsuario = function (req, res) {
     try {
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-
-        let acceso = await pool.query(qUsuarios.solicitarAccesoUsuario, [req.params.pswrd, req.params.nomb_usr]);
-        console.log(acceso.rows[0].permitir_acceso);
-
-        if (acceso.rows[0].permitir_acceso) {
-            let token_generado = generarTokenString(req.params.nomb_usr, req.params.pswrd).then(
-                function () {
-                    res.status(200).send(JSON.stringify({ respuesta: generarToken(req.params.nomb_usr, token_generado, configuracion.llave) }));
-                }
-            ).catch(function () {
-                res.status(400).send(JSON.stringify({ "error": "Error al generar el token" }));
-            })
-
-        }
-        else {
-            res.send(JSON.stringify({ "error": "Usuario y/o contraseña incorrectos" }));
-        }
-
+        const pool = poolSrv.getInstance().getPool();
+        pool.connect((err, client, release) => {
+            if (err) {
+                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
+            } else {
+                client.query(qUsuarios.solicitarAccesoUsuario, [req.params.pswrd, req.params.nomb_usr], (err, resp) => {
+                    release();
+                    if (resp.rows[0].permitir_acceso) {
+                        let token_generado = generarTokenString(req.params.nomb_usr, req.params.pswrd).then(
+                            function () {
+                                res.status(200).send(JSON.stringify({ respuesta: generarToken(req.params.nomb_usr, token_generado, configuracion.llave) }));
+                            }
+                        ).catch(function () {
+                            res.status(400).send(JSON.stringify({ "error": "Error al generar el token" }));
+                        })
+            
+                    } else {
+                        res.send(JSON.stringify({ "error": "Usuario y/o contraseña incorrectos" }));  
+                    }
+                    
+                    if (err) {
+                        res.status(400).send(JSON.stringify({ "mensaje": "Ocurrio un ERROR al validar el usuario" }));
+                        return;
+                    }
+                   
+                });
+            }
+        })
     } catch (err) {
-        res.status(400).send({ "error": err.stack });
+        res.status(400).send({ 'error': `${err}` });
     }
 };
 
 exports.validarPassVieja = async function (req, res) {
-    var pool = new Pool({
-        connectionString: connectionString,
-    });
-
-    (async () => {
-        const client = await pool.connect()
-        try {
-
-            await client.query('BEGIN')
-            const { rows } = await client.query(qUsuarios.solicitarAccesoUsuario, [req.params.pswrd, req.params.nomb_usr]);
-
-            await client.query('COMMIT')
-            res.status(200).send({ "mensaje": "El password ingresado es correcto", "permitir_acceso": rows[0].permitir_acceso });
-        } catch (e) {
-            await client.query('ROLLBACK')
-            res.send({ "mensaje": "El password ingresado no es correcto" });
-            throw e
-        } finally {
-            client.release()
-        }
-    })().catch(e => console.error(e.stack))
-};
+    try {
+        const pool = poolSrv.getInstance().getPool();
+        pool.connect((err, client, release) => {
+            if (err) {
+                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
+            } else {
+                client.query(qUsuarios.solicitarAccesoUsuario, [req.params.pswrd, req.params.nomb_usr], (err, resp) => {
+                    release();
+                    if (err) {
+                        res.status(400).send(JSON.stringify({ "mensaje": "El password ingresado no es correcto" }));
+                        return;
+                    }
+                    res.status(200).send({ "mensaje": "El password ingresado es correcto", "permitir_acceso": resp[0].permitir_acceso });
+                });
+            }
+        })
+    } catch (err) {
+        res.status(400).send({ 'error': `${err}` });
+    }  
+}
 
 
 
 exports.cambiarPassword = function (req, res) {
-    var pool = new Pool({
-        connectionString: connectionString,
-    });
-
-    (async () => {
-        const client = await pool.connect()
-        try {
-
-            await client.query('BEGIN')
-            const { rows } = await client.query(qUsuarios.cambiarPassword, [req.body.password, req.body.usuario])
-
-            await client.query('COMMIT')
-            res.status(200).send({ "mensaje": "El password fue actualizado exitosamente", "id": rows[0].id });
-        } catch (e) {
-            await client.query('ROLLBACK')
-            res.status(400).send({ "mensaje": "Ocurrio un error al actualizar el password" });
-            throw e
-        } finally {
-            client.release()
-        }
-    })().catch(e => console.error(e.stack))
-};
+    try {
+        const pool = poolSrv.getInstance().getPool();
+        pool.connect((err, client, release) => {
+            if (err) {
+                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
+            } else {
+                client.query(qUsuarios.cambiarPassword, [req.body.password, req.body.usuario], (err, resp) => {
+                    release();
+                    if (err) {
+                        res.status(400).send(JSON.stringify({ "mensaje": "Ocurrio un error al actualizar el password" }));
+                        return;
+                    }
+                    res.status(200).send({ "mensaje": "El password fue actualizado exitosamente", "id": resp[0].id });
+                });
+            }
+        })
+    } catch (err) {
+        res.status(400).send({ 'error': `${err}` });
+    }
+}
 
 exports.getDatosUsuario = function (req, res) {
-
     try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        try {
-            (async () => {
-                respuesta = await pool.query(qUsuarios.getDatosUsuario, [req.params.usuario])
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
+        const pool = poolSrv.getInstance().getPool();
+        pool.connect((err, client, release) => {
+            if (err) {
+                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
+            } else {
+                client.query(qUsuarios.getDatosUsuario, [req.params.usuario], (err, resp) => {
+                    release();
+                    if (err) {
+                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
+                        return;
+                    }
+                    res.status(200).send(JSON.stringify(resp.rows));
+                });
+            }
+        })
     } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+        res.status(400).send({ 'error': `${err}` });
     }
-
-
-};
-
-
+}
 
 exports.getUsuariosTodos = function (req, res) {
-
     try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        try {
-            (async () => {
-                respuesta = await pool.query(qUsuarios.getUsuariosTodos)
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
+        const pool = poolSrv.getInstance().getPool();
+        pool.connect((err, client, release) => {
+            if (err) {
+                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
+            } else {
+                client.query(qUsuarios.getUsuariosTodos, [], (err, resp) => {
+                    release();
+                    if (err) {
+                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
+                        return;
+                    }
+                    res.status(200).send(JSON.stringify(resp.rows));
+                });
+            }
+        })
     } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+        res.status(400).send({ 'error': `${err}` });
     }
-
-
-};
+}
 
 exports.getUsuariosBusqueda = function (req, res) {
-
     try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        try {
-            (async () => {
-                respuesta = await pool.query(qUsuarios.getUsuariosBusqueda, [req.params.texto_busqueda])
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
+        const pool = poolSrv.getInstance().getPool();
+        pool.connect((err, client, release) => {
+            if (err) {
+                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
+            } else {
+                client.query(qUsuarios.getUsuariosBusqueda, [req.params.texto_busqueda], (err, resp) => {
+                    release();
+                    if (err) {
+                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
+                        return;
+                    }
+                    res.status(200).send(JSON.stringify(resp.rows));
+                });
+            }
+        })
     } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+        res.status(400).send({ 'error': `${err}` });
     }
 
-};
+}
 
 
 exports.getDatosUsuariosCargados = function (req, res) {
     try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        console.log("ID_USUARIO: " + req.params.id_usuario);
-        try {
-            (async () => {
-                respuesta = await pool.query(qUsuarios.getDatosUsuariosCargados, [req.params.id])
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
+        const pool = poolSrv.getInstance().getPool();
+        pool.connect((err, client, release) => {
+            if (err) {
+                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
+            } else {
+                client.query(qUsuarios.getDatosUsuariosCargados, [req.params.id], (err, resp) => {
+                    release();
+                    if (err) {
+                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
+                        return;
+                    }
+                    res.status(200).send(JSON.stringify(resp.rows));
+                });
+            }
+        })
     } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+        res.status(400).send({ 'error': `${err}` });
     }
-};
-
+}
 
 exports.getPerfilesAsignados = function (req, res) {
     try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        console.log("ID_USUARIO: " + req.params.id_usuario);
-        try {
-            (async () => {
-                respuesta = await pool.query(qUsuarios.getPerfilesAsignados, [req.params.id])
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
+        const pool = poolSrv.getInstance().getPool();
+        pool.connect((err, client, release) => {
+            if (err) {
+                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
+            } else {
+                client.query(qUsuarios.getPerfilesAsignados, [req.params.id], (err, resp) => {
+                    release();
+                    if (err) {
+                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
+                        return;
+                    }
+                    res.status(200).send(JSON.stringify(resp.rows));
+                });
+            }
+        })
     } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+        res.status(400).send({ 'error': `${err}` });
     }
-};
+}
 
 exports.getPerfilesSinAsignar = function (req, res) {
     try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        try {
-            (async () => {
-                respuesta = await pool.query(qUsuarios.getPerfilesSinAsignar, [req.params.id])
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
+        const pool = poolSrv.getInstance().getPool();
+        pool.connect((err, client, release) => {
+            if (err) {
+                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
+            } else {
+                client.query(qUsuarios.getPerfilesSinAsignar, [req.params.id], (err, resp) => {
+                    release();
+                    if (err) {
+                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
+                        return;
+                    }
+                    res.status(200).send(JSON.stringify(resp.rows));
+                });
+            }
+        })
     } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
+        res.status(400).send({ 'error': `${err}` });
     }
-};
+}
 
 
 
 //-----------> PAGINACION INICIO :
 exports.getCantidadPaginasUsuarios = function (req, res) {
     try {
-        let query = ``;
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-
-        try {
-            (async () => {
-                query = ` 
-                SELECT 
-                    count(*) as cantidad_registros,
-                    (count(*)/5 )+ (case when count(*) % 5 >0 then 1 else 0 end) as cantidad_paginas
-                FROM (
-                    SELECT 
-                        * 
-                    FROM seguridad.usuarios usr
-                    JOIN public.personas ps ON usr.personas_id = ps.id 
-                )x
-                `;
-                console.log(query);
-                respuesta = await pool.query(query).then(resp => {
-                    console.log(JSON.stringify(resp.rows));
+        const pool = poolSrv.getInstance().getPool();
+        pool.connect((err, client, release) => {
+            if (err) {
+                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
+            } else {
+                client.query(qUsuarios.getCantidadPaginasUsuarios, [], (err, resp) => {
+                    release();
+                    if (err) {
+                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
+                        return;
+                    }
                     res.status(200).send({ "regCantidadPaginas": resp.rows[0] });
-                }).catch(err => {
-                    console.error("ERROR", err.stack);
-                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
                 });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
+            }
+        })
     } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+        res.status(400).send({ 'error': `${err}` });
     }
-};
+
+}
 
 exports.getCantidadPaginasUsuariosTxt = function (req, res) {
-    try {
-        let query = ``;
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        let parametrosBusqueda = ``;
-        let habilitarBusquedaNombre = parseInt(req.params.busca_nombre);
-        let habilitarBusquedaUsuario = parseInt(req.params.busca_usuario);
-        let habilitarBusquedaDescripcion = parseInt(req.params.busca_descripcion);
-        if ((habilitarBusquedaNombre + habilitarBusquedaUsuario + habilitarBusquedaDescripcion) > 0) {
-            parametrosBusqueda = parametrosBusqueda + ` WHERE   `;
-            if (habilitarBusquedaNombre == 1) {
-                parametrosBusqueda = parametrosBusqueda + `ps.apellido::varchar ||', '|| ps.nombre::varchar ilike '%` + req.params.txt + `%'`;
-            }
-            if (habilitarBusquedaUsuario == 1) {
-                if (habilitarBusquedaNombre == 0) {
-                    parametrosBusqueda = parametrosBusqueda + `usr.nomb_usr::varchar ilike '%` + req.params.txt + `%'`;
-                } else {
-                    parametrosBusqueda = parametrosBusqueda + `OR usr.nomb_usr::varchar ilike '%` + req.params.txt + `%'`;
-                }
-            }
-            if (habilitarBusquedaDescripcion == 1) {
-                if ((habilitarBusquedaNombre + habilitarBusquedaUsuario) == 0) {
-                    parametrosBusqueda = parametrosBusqueda + `usr.desc_usr::varchar ilike '%` + req.params.txt + `%'`;
-                } else {
-                    parametrosBusqueda = parametrosBusqueda + `OR usr.desc_usr::varchar ilike '%` + req.params.txt + `%'`;
-                }
+    //Preparacion de los parametros para la consulta
+    let parametrosBusqueda = ``;
+    let habilitarBusquedaNombre = parseInt(req.params.busca_nombre);
+    let habilitarBusquedaUsuario = parseInt(req.params.busca_usuario);
+    let habilitarBusquedaDescripcion = parseInt(req.params.busca_descripcion);
+    if ((habilitarBusquedaNombre + habilitarBusquedaUsuario + habilitarBusquedaDescripcion) > 0) {
+        parametrosBusqueda = parametrosBusqueda + ` WHERE   `;
+        if (habilitarBusquedaNombre == 1) {
+            parametrosBusqueda = parametrosBusqueda + `ps.apellido::varchar ||', '|| ps.nombre::varchar ilike '%` + req.params.txt + `%'`;
+        }
+        if (habilitarBusquedaUsuario == 1) {
+            if (habilitarBusquedaNombre == 0) {
+                parametrosBusqueda = parametrosBusqueda + `usr.nomb_usr::varchar ilike '%` + req.params.txt + `%'`;
+            } else {
+                parametrosBusqueda = parametrosBusqueda + `OR usr.nomb_usr::varchar ilike '%` + req.params.txt + `%'`;
             }
         }
-        try {
-            (async () => {
-                query = ` 
-                SELECT 
-                    count(*) as cantidad_registros,
-                    (count(*)/5 )+ (case when count(*) % 5 >0 then 1 else 0 end) as cantidad_paginas
-                FROM (
-                    SELECT 
-                        * 
-                    FROM seguridad.usuarios usr
-                    JOIN public.personas ps ON usr.personas_id = ps.id 
-                    `+ parametrosBusqueda + `
-                )x `;
-                console.log(query);
-                respuesta = await pool.query(query).then(resp => {
-                    console.log(JSON.stringify(resp.rows));
-                    res.status(200).send({ "regCantidadPaginas": resp.rows[0] });
-                }).catch(err => {
-                    console.error("ERROR", err.stack);
-                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        if (habilitarBusquedaDescripcion == 1) {
+            if ((habilitarBusquedaNombre + habilitarBusquedaUsuario) == 0) {
+                parametrosBusqueda = parametrosBusqueda + `usr.desc_usr::varchar ilike '%` + req.params.txt + `%'`;
+            } else {
+                parametrosBusqueda = parametrosBusqueda + `OR usr.desc_usr::varchar ilike '%` + req.params.txt + `%'`;
+            }
         }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
     }
-};
+    //Consulta
+    const query = ` 
+    SELECT 
+        count(*) as cantidad_registros,
+        (count(*)/5 )+ (case when count(*) % 5 >0 then 1 else 0 end) as cantidad_paginas
+    FROM (
+        SELECT 
+            * 
+        FROM seguridad.usuarios usr
+        JOIN public.personas ps ON usr.personas_id = ps.id 
+        ${parametrosBusqueda}
+    )x `;
+
+    try {
+        const pool = poolSrv.getInstance().getPool();
+        pool.connect((err, client, release) => {
+            if (err) {
+                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
+            } else {
+                client.query(query, [], (err, resp) => {
+                    release();
+                    if (err) {
+                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
+                        return;
+                    }
+                    res.status(200).send({ "regCantidadPaginas": resp.rows[0] });
+                });
+            }
+        })
+    } catch (err) {
+        res.status(400).send({ 'error': `${err}` });
+    }
+}
 
 exports.getUsuarios = function (req, res) {
+    const query = ` 
+    SELECT 
+        * 
+    FROM seguridad.usuarios usr
+    JOIN public.personas ps ON usr.personas_id = ps.id 
+    ORDER BY ps.apellido, ps.nombre
+    OFFSET (5* ((CASE 
+        WHEN ${req.params.paginaActual} > ${req.params.cantidadPaginas} THEN ${req.params.cantidadPaginas} 
+        WHEN ${req.params.paginaActual} <1 THEN 1 
+        ELSE ${req.params.paginaActual} END) -1))
+    LIMIT 5 `;
+
     try {
-        let query = ``;
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-
-        try {
-            (async () => {
-                query = ` 
-                SELECT 
-                    * 
-                FROM seguridad.usuarios usr
-                JOIN public.personas ps ON usr.personas_id = ps.id 
-                ORDER BY ps.apellido, ps.nombre
-                OFFSET (5* ((CASE 
-                    WHEN `+ req.params.paginaActual + `>` + req.params.cantidadPaginas + ` THEN ` + req.params.cantidadPaginas + ` 
-                    WHEN `+ req.params.paginaActual + `<1 THEN 1 
-                    ELSE `+ req.params.paginaActual + ` END) -1))
-                LIMIT 5 `;
-                console.log(query);
-                respuesta = await pool.query(query).then(resp => {
-                    console.log(JSON.stringify(resp.rows));
+        const pool = poolSrv.getInstance().getPool();
+        pool.connect((err, client, release) => {
+            if (err) {
+                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
+            } else {
+                client.query(query, [], (err, resp) => {
+                    release();
+                    if (err) {
+                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
+                        return;
+                    }
                     res.status(200).send(resp.rows);
-                }).catch(err => {
-                    console.error("ERROR", err.stack);
-                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
                 });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
+            }
+        })
     } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+        res.status(400).send({ 'error': `${err}` });
     }
-};
+
+}
 
 exports.getUsuariosTxt = function (req, res) {
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        let query = ``;
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        let parametrosBusqueda = ``;
-        let habilitarBusquedaNombre = parseInt(req.params.busca_nombre);
-        let habilitarBusquedaUsuario = parseInt(req.params.busca_usuario);
-        let habilitarBusquedaDescripcion = parseInt(req.params.busca_descripcion);
-        if ((habilitarBusquedaNombre + habilitarBusquedaUsuario + habilitarBusquedaDescripcion) > 0) {
-            parametrosBusqueda = parametrosBusqueda + ` WHERE   `;
-            if (habilitarBusquedaNombre == 1) {
-                parametrosBusqueda = parametrosBusqueda + `ps.apellido::varchar ||', '|| ps.nombre::varchar ilike '%` + req.params.txt + `%'`;
-            }
-            if (habilitarBusquedaUsuario == 1) {
-                if (habilitarBusquedaNombre == 0) {
-                    parametrosBusqueda = parametrosBusqueda + `usr.nomb_usr::varchar ilike '%` + req.params.txt + `%'`;
-                } else {
-                    parametrosBusqueda = parametrosBusqueda + `OR usr.nomb_usr::varchar ilike '%` + req.params.txt + `%'`;
-                }
-            }
-            if (habilitarBusquedaDescripcion == 1) {
-                if ((habilitarBusquedaNombre + habilitarBusquedaUsuario) == 0) {
-                    parametrosBusqueda = parametrosBusqueda + `usr.desc_usr::varchar ilike '%` + req.params.txt + `%'`;
-                } else {
-                    parametrosBusqueda = parametrosBusqueda + `OR usr.desc_usr::varchar ilike '%` + req.params.txt + `%'`;
-                }
+    //Preparacion de los parametros de la consulta
+    let parametrosBusqueda = ``;
+    let habilitarBusquedaNombre = parseInt(req.params.busca_nombre);
+    let habilitarBusquedaUsuario = parseInt(req.params.busca_usuario);
+    let habilitarBusquedaDescripcion = parseInt(req.params.busca_descripcion);
+    if ((habilitarBusquedaNombre + habilitarBusquedaUsuario + habilitarBusquedaDescripcion) > 0) {
+        parametrosBusqueda = parametrosBusqueda + ` WHERE   `;
+        if (habilitarBusquedaNombre == 1) {
+            parametrosBusqueda = parametrosBusqueda + `ps.apellido::varchar ||', '|| ps.nombre::varchar ilike '%` + req.params.txt + `%'`;
+        }
+        if (habilitarBusquedaUsuario == 1) {
+            if (habilitarBusquedaNombre == 0) {
+                parametrosBusqueda = parametrosBusqueda + `usr.nomb_usr::varchar ilike '%` + req.params.txt + `%'`;
+            } else {
+                parametrosBusqueda = parametrosBusqueda + `OR usr.nomb_usr::varchar ilike '%` + req.params.txt + `%'`;
             }
         }
-        try {
-            (async () => {
-                query = ` 
-                SELECT 
-                    * 
-                FROM seguridad.usuarios usr
-                JOIN public.personas ps ON usr.personas_id = ps.id 
-                `+ parametrosBusqueda + `
-                ORDER BY ps.apellido, ps.nombre
-                OFFSET (5* ((CASE 
-                    WHEN `+ req.params.paginaActual + `>` + req.params.cantidadPaginas + ` THEN ` + req.params.cantidadPaginas + ` 
-                    WHEN `+ req.params.paginaActual + `<1 THEN 1 
-                    ELSE `+ req.params.paginaActual + ` END)-1))
-                LIMIT 5 `;
-                console.log(query);
-                respuesta = await pool.query(query).then(resp => {
-                    console.log(JSON.stringify(resp.rows));
-                    res.status(200).send(resp.rows);
-                }).catch(err => {
-                    console.error("ERROR", err.stack);
-                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        if (habilitarBusquedaDescripcion == 1) {
+            if ((habilitarBusquedaNombre + habilitarBusquedaUsuario) == 0) {
+                parametrosBusqueda = parametrosBusqueda + `usr.desc_usr::varchar ilike '%` + req.params.txt + `%'`;
+            } else {
+                parametrosBusqueda = parametrosBusqueda + `OR usr.desc_usr::varchar ilike '%` + req.params.txt + `%'`;
+            }
         }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
     }
-};
+    //Consulta
+    const query = ` 
+    SELECT 
+        * 
+    FROM seguridad.usuarios usr
+    JOIN public.personas ps ON usr.personas_id = ps.id 
+    ${parametrosBusqueda}
+    ORDER BY ps.apellido, ps.nombre
+    OFFSET (5* ((CASE 
+        WHEN ${req.params.paginaActual} > ${req.params.cantidadPaginas} THEN ${req.params.cantidadPaginas}
+        WHEN ${req.params.paginaActual} <1 THEN 1 
+        ELSE ${req.params.paginaActual} END)-1))
+    LIMIT 5 `;
+
+    try {
+        const pool = poolSrv.getInstance().getPool();
+        pool.connect((err, client, release) => {
+            if (err) {
+                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
+            } else {
+                client.query(query, [], (err, resp) => {
+                    release();
+                    if (err) {
+                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
+                        return;
+                    }
+                    res.status(200).send(resp.rows);
+                });
+            }
+        })
+    } catch (err) {
+        res.status(400).send({ 'error': `${err}` });
+    }
+}
 //<------------------PAGINACION FIN
 
 
@@ -532,75 +447,67 @@ exports.getUsuariosTxt = function (req, res) {
 /*---------------------------POST----------------------------- */
 
 exports.insertUsuarioReturnId = function (req, res) {
+    let debug = 0;
+    const personas_id = (req.body.personas_id != undefined) ? req.body.personas_id : `null`;
+    const nomb_usr = (req.body.nombre_usuario != undefined) ? `'` + req.body.nombre_usuario + `'` : `null`;
+    const usuario = (req.body.usuario != undefined) ? `'` + req.body.usuario + `'` : `null`;
+    const check_debug = (req.body.chk_debug != undefined) ? req.body.chk_debug : `null`;
 
-    var pool = new Pool({
-        connectionString: connectionString,
-    });
-
-    (async () => {
-        const client = await pool.connect()
-        try {
-            var debug = 0;
-            let personas_id = (req.body.personas_id != undefined) ? req.body.personas_id : `null`;
-            let nomb_usr = (req.body.nombre_usuario != undefined) ? `'` + req.body.nombre_usuario + `'` : `null`;
-            let usuario = (req.body.usuario != undefined) ? `'` + req.body.usuario + `'` : `null`;
-            let check_debug = (req.body.chk_debug != undefined) ? req.body.chk_debug : `null`;
-
-            if (check_debug) {
-                debug = 1;
+    if (check_debug) {
+        debug = 1;
+    } else {
+        debug = 0;
+    }
+    try {
+        const pool = poolSrv.getInstance().getPool();
+        pool.connect((err, client, release) => {
+            if (err) {
+                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
             } else {
-                debug = 0;
+                client.query(qUsuarios.insertUsuarioReturnId, [nomb_usr, usuario, debug, personas_id], (err, resp) => {
+                    release();
+                    if (err) {
+                        res.status(400).send(JSON.stringify({ "mensaje": "Ocurrio un error al cargar el Usuario" }));
+                        return;
+                    }
+                    res.status(200).send({ "mensaje": "El USUARIO fue guardado exitosamente", "id": resp.rows[0].id });
+                });
             }
-
-            console.log("Personas_id:" + personas_id);
-            await client.query('BEGIN')
-
-            const { rows } = await client.query(qUsuarios.insertUsuarioReturnId, [nomb_usr, usuario, debug, personas_id]);
-
-            await client.query('COMMIT')
-            res.status(200).send({ "mensaje": "El USUARIO fue guardado exitosamente", "id": rows[0].id });
-        } catch (e) {
-            await client.query('ROLLBACK')
-            res.status(400).send({ "mensaje": "Ocurrio un error al cargar el producto" });
-            throw e
-        } finally {
-            client.release()
-        }
-    })().catch(e => console.error(e.stack))
-};
+        })
+    } catch (err) {
+        res.status(400).send({ 'error': `${err}` });
+    }
+}
 
 
 exports.insertPerfilesAsignados = function (req, res) {
-
-    var pool = new Pool({
-        connectionString: connectionString,
-    });
-
-    (async () => {
-        const client = await pool.connect()
-        try {
-            let usuarios_id = (req.body.usuarios_id != undefined) ? req.body.usuarios_id : `null`;
-            let perfiles_id = (req.body.perfiles_id != undefined) ? req.body.perfiles_id : `null`;
-
-            await client.query('BEGIN')
-
-            const { rows } = await client.query(qUsuarios.insertPerfilesAsignados, [usuarios_id, perfiles_id])
-
-            await client.query('COMMIT')
-            res.status(200).send({ "mensaje": "El Perfil fue guardado exitosamente", "id": rows[0].id });
-        } catch (e) {
-            await client.query('ROLLBACK')
-            res.status(400).send({ "mensaje": "Ocurrio un error al cargar el Perfil" });
-            throw e
-        } finally {
-            client.release()
-        }
-    })().catch(e => console.error(e.stack))
-};
+    const usuarios_id = (req.body.usuarios_id != undefined) ? req.body.usuarios_id : `null`;
+    const perfiles_id = (req.body.perfiles_id != undefined) ? req.body.perfiles_id : `null`;
+    try {
+        const pool = poolSrv.getInstance().getPool();
+        pool.connect((err, client, release) => {
+            if (err) {
+                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
+            } else {
+                client.query(qUsuarios.insertPerfilesAsignados, [usuarios_id, perfiles_id], (err, resp) => {
+                    release();
+                    if (err) {
+                        res.status(400).send(JSON.stringify({ "mensaje": "Ocurrio un error al cargar el Perfil" }));
+                        return;
+                    }
+                    res.status(200).send({ "mensaje": "El Perfil fue guardado exitosamente", "id": resp.rows[0].id });
+                });
+            }
+        })
+    } catch (err) {
+        res.status(400).send({ 'error': `${err}` });
+    }
+}
 
 
 exports.actualizarDatosUsuarios = function (req, res) {
-    var pool = new Pool({
+    res.status(400).send("Este metodo no tiene consulta...");
+    /*var pool = new Pool({
         connectionString: connectionString,
     });
 
@@ -644,7 +551,7 @@ exports.actualizarDatosUsuarios = function (req, res) {
         } finally {
             client.release()
         }
-    })().catch(e => console.error(e.stack))
+    })().catch(e => console.error(e.stack))*/
 };
 
 
@@ -656,28 +563,26 @@ exports.actualizarDatosUsuarios = function (req, res) {
 
 
 exports.deletePerfiles = function (req, res) {
+    try {
+        const pool = poolSrv.getInstance().getPool();
+        pool.connect((err, client, release) => {
+            if (err) {
+                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
+            } else {
+                client.query(qUsuarios.deletePerfiles, [req.params.id_usuario], (err, resp) => {
+                    release();
+                    if (err) {
+                        res.status(400).send(JSON.stringify({ "mensaje": "Ocurrio un error al eliminar el Perfil" }));
+                        return;
+                    }
+                    res.status(200).send({ "mensaje": "El Perfil fue eliminado exitosamente"});
+                });
+            }
+        })
+    } catch (err) {
+        res.status(400).send({ 'error': `${err}` });
+    }
 
-    var pool = new Pool({
-        connectionString: connectionString,
-    });
-
-    (async () => {
-        const client = await pool.connect()
-        try {
-            await client.query('BEGIN')
-
-            await client.query(qUsuarios.deletePerfiles, [req.params.id_usuario])
-
-            await client.query('COMMIT')
-            res.status(200).send({ "mensaje": "Las imagenes se eliminaron exitosamente" });
-        } catch (e) {
-            await client.query('ROLLBACK')
-            res.status(400).send({ "mensaje": "Ocurrio un error al cargar la imagen" });
-            throw e
-        } finally {
-            client.release()
-        }
-    })().catch(e => console.error(e.stack))
 };
 
 

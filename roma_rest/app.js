@@ -15,7 +15,7 @@ app.use(bodyParser.json({ limit: '50mb' }));
 const router = express.Router();
 app.use(router);
 
-app.listen(configuracion.puerto, function () {
+module.exports = app.listen(configuracion.puerto, function () {
 	console.log('Servidor Corriendo en puerto '+configuracion.puerto);
 });
 

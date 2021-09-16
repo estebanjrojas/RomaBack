@@ -94,6 +94,31 @@ JOIN roma.productos pr ON vd.productos_id = pr.id
 WHERE vd.ventas_id = $1;
 `;
 
+exports.getCantidadPaginasVentas = `
+SELECT 
+    count(*) as cantidad_registros,
+    (count(*)/5 )+ (case when count(*) % 5 >0 then 1 else 0 end) as cantidad_paginas
+FROM (
+    SELECT v.id as ventas_id
+        , cli.id as clientes_id
+        , per.id as personas_id
+        , v.fecha
+        , per.nombre as nombre_cliente
+        , per.apellido as apellido_cliente
+        , per2.nombre as nombre_vendedor
+        , per2.apellido as apellido_vendedor
+        , v.monto_total as monto
+        , CASE WHEN v.fecha_anulacion is not null THEN true ELSE false END as anulada
+        , v.fecha_anulacion
+        , v.usuario_anulacion
+    FROM roma.ventas v 
+    JOIN roma.clientes cli ON v.clientes_id = cli.id
+    JOIN personas per ON cli.personas_id = per.id
+    JOIN roma.empleados emp ON v.empleados_id = emp.id
+    JOIN personas per2 ON emp.personas_id = per2.id 
+)x
+`;
+
 exports.insertReturnId = `
 INSERT INTO roma.ventas(fecha, monto_total, empresas_id, empleados_id, clientes_id)
 VALUES(now()::date, $1, $2, $3, $4)

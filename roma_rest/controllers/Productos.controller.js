@@ -1,609 +1,214 @@
 //Conexión a Postgres
 const configuracion = require("../utillities/config");
-const qProductos = require("./query/Productos.js");
 var { Pool } = require('pg');
 const connectionString = configuracion.bd;
-
-
+const querySrv = require("../services/QueryService");
+const qProductos = require("./query/Productos.js");
 //------------------------------GET------------------------------//
 
 exports.getProductosTodos = function (req, res) {
-
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        try {
-            (async () => {
-                respuesta = await pool.query(qProductos.getProductosTodos, [])
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
-    }
-
-
-};
+    querySrv.getQueryResults(qProductos.getProductosTodos, [])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 exports.getProductosBusqueda = function (req, res) {
-
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        try {
-            (async () => {
-                respuesta = await pool.query(qProductos.getProductosBusqueda, [req.params.texto_busqueda])
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
-    }
-
-
-};
+    querySrv.getQueryResults(qProductos.getProductosBusqueda, [req.params.texto_busqueda])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 exports.getDatosProductos = function (req, res) {
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-
-        try {
-            (async () => {
-                respuesta = await pool.query(qProductos.getDatosProductos, [req.params.id])
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
-    }
-};
-
+    querySrv.getQueryResults(qProductos.getDatosProductos, [req.params.id])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 exports.getCaracteristicasProductos = function (req, res) {
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-
-        try {
-            (async () => {
-                respuesta = await pool.query(qProductos.getCaracteristicasProductos, [req.params.id])
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
-    }
-};
-
+    querySrv.getQueryResults(qProductos.getCaracteristicasProductos, [req.params.id])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 exports.getCategoriasProductos = function (req, res) {
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-
-        try {
-            (async () => {
-                respuesta = await pool.query(qProductos.getCategoriasProductos, [req.params.id])
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
-    }
-};
+    querySrv.getQueryResults(qProductos.getCategoriasProductos, [req.params.id])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 exports.getUltimoPrecioValido = function (req, res) {
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-
-        try {
-            (async () => {
-                respuesta = await pool.query(qProductos.getUltimoPrecioValido, [req.params.id])
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
-    }
-};
-
+    querySrv.getQueryResults(qProductos.getUltimoPrecioValido, [req.params.id])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 exports.getHistorialPrecios = function (req, res) {
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-
-        try {
-            (async () => {
-                respuesta = await pool.query(qProductos.getHistorialPrecios, [req.params.id])
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
-    }
-};
-
+    querySrv.getQueryResults(qProductos.getHistorialPrecios, [req.params.id])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 exports.getImagenesProductos = function (req, res) {
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-
-        try {
-            (async () => {
-                respuesta = await pool.query(qProductos.getImagenesProductos, [req.params.id])
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
-    }
-};
-
-
+    querySrv.getQueryResults(qProductos.getImagenesProductos, [req.params.id])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 exports.getProductosPorCategoriaCampoBusqueda = function (req, res) {
-
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        try {
-            (async () => {
-                respuesta = await pool.query(qProductos.getProductosPorCategoriaCampoBusqueda, [req.params.categorias_id, req.params.campo_buscar, req.params.texto_buscar])
-                    .then(resp => {
-                        console.log(`getProductosPorCategoriaCampoBusqueda(${req.params.categorias_id}, ${req.params.campo_buscar}, ${req.params.texto_buscar})`);
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
-    }
-
-
-};
+    querySrv.getQueryResults(qProductos.getProductosPorCategoriaCampoBusqueda, [req.params.categorias_id, req.params.campo_buscar, req.params.texto_buscar])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 exports.getFotosCargadas = function (req, res) {
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-
-        try {
-            (async () => {
-                respuesta = await pool.query(qProductos.getFotosCargadas, [req.params.id])
-                    .then(resp => {
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se pudieron traer las imagenes" }));
-                    });
-                return respuesta;
-            })()
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-    } catch (err) {
-        res.status(400).send({ 'mensaje': 'Ocurrio un Error' });
-    }
-};
-
-
+    querySrv.getQueryResults(qProductos.getFotosCargadas, [req.params.id])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 //-----------> PAGINACION INICIO :
 exports.getCantidadPaginasProductos = function (req, res) {
-    try {
-        let query = ``;
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-
-        try {
-            (async () => {
-                respuesta = await pool.query(qProductos.getCantidadPaginasProductos).then(resp => {
-                    console.log(JSON.stringify(resp.rows));
-                    res.status(200).send({ "regCantidadPaginas": resp.rows[0] });
-                }).catch(err => {
-                    console.error("ERROR", err.stack);
-                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
-    }
+    querySrv.getQueryResults(qProductos.getCantidadPaginasProductos, [])
+    .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
 };
 
 exports.getCantidadPaginasProductosTxt = function (req, res) {
-    try {
-        let query = ``;
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        let parametrosBusqueda = ``;
-        let habilitarBusquedaCodigo = parseInt(req.params.busca_codigo);
-        let habilitarBusquedaNombre = parseInt(req.params.busca_nombre);
-        let habilitarBusquedaDescripcion = parseInt(req.params.busca_descripcion);
-        let habilitarBusquedaCategoria = parseInt(req.params.busca_categoria);
-        console.log('parametros' + habilitarBusquedaCodigo
-            + '/' + habilitarBusquedaNombre
-            + '/' + habilitarBusquedaDescripcion
-            + '/' + habilitarBusquedaCategoria);
-        if ((habilitarBusquedaCodigo + habilitarBusquedaNombre +
-            habilitarBusquedaDescripcion + habilitarBusquedaCategoria) > 0) {
-            parametrosBusqueda = parametrosBusqueda + ` WHERE `;
-            if (habilitarBusquedaCodigo == 1) {
-                parametrosBusqueda = parametrosBusqueda + `p.codigo::varchar ilike '%` + req.params.txt + `%'`;
-                console.log('entro al primero');
-            }
-            if (habilitarBusquedaNombre == 1) {
-                if (habilitarBusquedaCodigo == 0) {
-                    parametrosBusqueda = parametrosBusqueda + `p.nombre::varchar ilike '%` + req.params.txt + `%'`;
-                } else {
-                    parametrosBusqueda = parametrosBusqueda + `OR p.nombre::varchar ilike '%` + req.params.txt + `%'`;
-                }
-                console.log('entro al segundo');
-            }
 
-            if (habilitarBusquedaDescripcion == 1) {
-                if (habilitarBusquedaCodigo + habilitarBusquedaNombre == 0) {
-                    parametrosBusqueda = parametrosBusqueda + `p.descripcion::varchar ilike '%` + req.params.txt + `%'`;
-                } else {
-                    parametrosBusqueda = parametrosBusqueda + `OR p.descripcion::varchar ilike '%` + req.params.txt + `%'`;
-                }
-                console.log('entro al tercero');
-            }
-            if (habilitarBusquedaCategoria == 1) {
-                if ((habilitarBusquedaCodigo + habilitarBusquedaNombre + habilitarBusquedaDescripcion) == 0) {
-                    parametrosBusqueda = parametrosBusqueda + `cat.nombre::varchar ilike '%` + req.params.txt + `%'`;
-                } else {
-                    parametrosBusqueda = parametrosBusqueda + `OR cat.nombre::varchar ilike '%` + req.params.txt + `%'`;
-                }
-                console.log('entro al cuarto');
+    let parametrosBusqueda = ``;
+    const habilitarBusquedaCodigo = parseInt(req.params.busca_codigo);
+    const habilitarBusquedaNombre = parseInt(req.params.busca_nombre);
+    const habilitarBusquedaDescripcion = parseInt(req.params.busca_descripcion);
+    const habilitarBusquedaCategoria = parseInt(req.params.busca_categoria);
+
+    if ((habilitarBusquedaCodigo + habilitarBusquedaNombre +
+        habilitarBusquedaDescripcion + habilitarBusquedaCategoria) > 0) {
+        parametrosBusqueda = parametrosBusqueda + ` WHERE `;
+        if (habilitarBusquedaCodigo == 1) {
+            parametrosBusqueda = parametrosBusqueda + `p.codigo::varchar ilike '%` + req.params.txt + `%'`;
+        }
+        if (habilitarBusquedaNombre == 1) {
+            if (habilitarBusquedaCodigo == 0) {
+                parametrosBusqueda = parametrosBusqueda + `p.nombre::varchar ilike '%` + req.params.txt + `%'`;
+            } else {
+                parametrosBusqueda = parametrosBusqueda + `OR p.nombre::varchar ilike '%` + req.params.txt + `%'`;
             }
         }
-        try {
-            (async () => {
-                query = ` 
-                SELECT 
-                    COUNT(*) as cantidad_registros,
-                    (COUNT(*)/5 )+ (CASE WHEN COUNT(*) % 5 >0 THEN 1 ELSE 0 END) AS cantidad_paginas
-                FROM (
-                    SELECT 
-                          p.id as productos_id
-                        ,  p.*
-                        , pc.*
-                        , cat.nombre as nombre_categoria
-                        , roma.get_imagen_principal_producto(p.id) as imagen
-                    FROM roma.productos p
-                    JOIN roma.productos_categorias pc ON p.id = pc.productos_id
-                    JOIN roma.categorias cat ON pc.categorias_id = cat.id
-                    ${parametrosBusqueda}
-                )x `;
-                console.log(query);
-                respuesta = await pool.query(query).then(resp => {
-                    console.log(JSON.stringify(resp.rows));
-                    res.status(200).send({ "regCantidadPaginas": resp.rows[0] });
-                }).catch(err => {
-                    console.error("ERROR", err.stack);
-                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                });
-                return respuesta;
 
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
+        if (habilitarBusquedaDescripcion == 1) {
+            if (habilitarBusquedaCodigo + habilitarBusquedaNombre == 0) {
+                parametrosBusqueda = parametrosBusqueda + `p.descripcion::varchar ilike '%` + req.params.txt + `%'`;
+            } else {
+                parametrosBusqueda = parametrosBusqueda + `OR p.descripcion::varchar ilike '%` + req.params.txt + `%'`;
+            }
         }
-
-    } catch (err) {
-        res.status(400).send({ 'mensaje': 'Ocurrio un Error', "error": err });
+        if (habilitarBusquedaCategoria == 1) {
+            if ((habilitarBusquedaCodigo + habilitarBusquedaNombre + habilitarBusquedaDescripcion) == 0) {
+                parametrosBusqueda = parametrosBusqueda + `cat.nombre::varchar ilike '%` + req.params.txt + `%'`;
+            } else {
+                parametrosBusqueda = parametrosBusqueda + `OR cat.nombre::varchar ilike '%` + req.params.txt + `%'`;
+            }
+        }
     }
-};
+
+    const query = ` 
+    SELECT 
+        COUNT(*) as cantidad_registros,
+        (COUNT(*)/5 )+ (CASE WHEN COUNT(*) % 5 >0 THEN 1 ELSE 0 END) AS cantidad_paginas
+    FROM (
+        SELECT 
+                p.id as productos_id
+            ,  p.*
+            , pc.*
+            , cat.nombre as nombre_categoria
+            , roma.get_imagen_principal_producto(p.id) as imagen
+        FROM roma.productos p
+        JOIN roma.productos_categorias pc ON p.id = pc.productos_id
+        JOIN roma.categorias cat ON pc.categorias_id = cat.id
+        ${parametrosBusqueda}
+    )x `;
+
+    querySrv.getQueryResults(query, [])
+    .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+
+}
 
 exports.getProductos = function (req, res) {
-    try {
-        let query = ``;
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-
-        try {
-            (async () => {
-                query = ` 
-                SELECT p.id as productos_id
-                        ,  p.*
-                        , pc.*
-                        , cat.nombre as nombre_categoria
-                        , roma.get_imagen_principal_producto(p.id) as imagen
-                FROM roma.productos p
-                JOIN roma.productos_categorias pc ON p.id = pc.productos_id
-                JOIN roma.categorias cat ON pc.categorias_id = cat.id 
-                OFFSET (5* ((CASE 
-                    WHEN ${req.params.paginaActual} > ${req.params.cantidadPaginas} THEN  ${req.params.cantidadPaginas} 
-                    WHEN ${req.params.paginaActual} <1 THEN 1 
-                    ELSE ${req.params.paginaActual} END) -1))
-                LIMIT 5 `;
-                console.log(query);
-                respuesta = await pool.query(query).then(resp => {
-                    console.log(JSON.stringify(resp.rows));
-                    res.status(200).send(resp.rows);
-                }).catch(err => {
-                    console.error("ERROR", err.stack);
-                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
-    }
-};
+    querySrv.getQueryResults(qProductos.getProductos, [req.params.paginaActual, req.params.cantidadPaginas])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 exports.getProductosTxt = function (req, res) {
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        let query = ``;
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        let parametrosBusqueda = ``;
-        let habilitarBusquedaCodigo = parseInt(req.params.busca_codigo);
-        let habilitarBusquedaNombre = parseInt(req.params.busca_nombre);
-        let habilitarBusquedaDescripcion = parseInt(req.params.busca_descripcion);
-        let habilitarBusquedaCategoria = parseInt(req.params.busca_categoria);
-        console.log('parametros' + habilitarBusquedaCodigo
-            + '/' + habilitarBusquedaNombre
-            + '/' + habilitarBusquedaDescripcion
-            + '/' + habilitarBusquedaCategoria);
-        if ((habilitarBusquedaCodigo + habilitarBusquedaNombre +
-            habilitarBusquedaDescripcion + habilitarBusquedaCategoria) > 0) {
-            parametrosBusqueda = parametrosBusqueda + ` WHERE `;
-            if (habilitarBusquedaCodigo == 1) {
-                parametrosBusqueda = parametrosBusqueda + `p.codigo::varchar ilike '%` + req.params.txt + `%'`;
-                console.log('entro al primero');
-            }
-            if (habilitarBusquedaNombre == 1) {
-                if (habilitarBusquedaCodigo == 0) {
-                    parametrosBusqueda = parametrosBusqueda + `p.nombre::varchar ilike '%` + req.params.txt + `%'`;
-                } else {
-                    parametrosBusqueda = parametrosBusqueda + `OR p.nombre::varchar ilike '%` + req.params.txt + `%'`;
-                }
-                console.log('entro al segundo');
-            }
+    let parametrosBusqueda = ``;
+    const habilitarBusquedaCodigo = parseInt(req.params.busca_codigo);
+    const habilitarBusquedaNombre = parseInt(req.params.busca_nombre);
+    const habilitarBusquedaDescripcion = parseInt(req.params.busca_descripcion);
+    const habilitarBusquedaCategoria = parseInt(req.params.busca_categoria);
 
-            if (habilitarBusquedaDescripcion == 1) {
-                if (habilitarBusquedaCodigo + habilitarBusquedaNombre == 0) {
-                    parametrosBusqueda = parametrosBusqueda + `p.descripcion::varchar ilike '%` + req.params.txt + `%'`;
-                } else {
-                    parametrosBusqueda = parametrosBusqueda + `OR p.descripcion::varchar ilike '%` + req.params.txt + `%'`;
-                }
-                console.log('entro al tercero');
-            }
-            if (habilitarBusquedaCategoria == 1) {
-                if ((habilitarBusquedaCodigo + habilitarBusquedaNombre + habilitarBusquedaDescripcion) == 0) {
-                    parametrosBusqueda = parametrosBusqueda + `cat.nombre::varchar ilike '%` + req.params.txt + `%'`;
-                } else {
-                    parametrosBusqueda = parametrosBusqueda + `OR cat.nombre::varchar ilike '%` + req.params.txt + `%'`;
-                }
-                console.log('entro al cuarto');
-            }
+    if ((habilitarBusquedaCodigo + habilitarBusquedaNombre +
+        habilitarBusquedaDescripcion + habilitarBusquedaCategoria) > 0) {
+        parametrosBusqueda = parametrosBusqueda + ` WHERE `;
+        if (habilitarBusquedaCodigo == 1) {
+            parametrosBusqueda = parametrosBusqueda + `p.codigo::varchar ilike '%` + req.params.txt + `%'`;
+
         }
-        try {
-            (async () => {
-                query = ` 
-                SELECT p.id as productos_id
-                        ,  p.*
-                        , pc.*
-                        , cat.nombre as nombre_categoria
-                        , roma.get_imagen_principal_producto(p.id) as imagen
-                FROM roma.productos p
-                JOIN roma.productos_categorias pc ON p.id = pc.productos_id
-                JOIN roma.categorias cat ON pc.categorias_id = cat.id
-                `+ parametrosBusqueda + `
-                OFFSET (5* ((CASE 
-                    WHEN ${req.params.paginaActual} > ${req.params.cantidadPaginas} THEN ${req.params.cantidadPaginas}
-                    WHEN ${req.params.paginaActual} <1 THEN 1 
-                    ELSE ${req.params.paginaActual} END)-1))
-                LIMIT 5 `;
-                console.log(query);
-                respuesta = await pool.query(query).then(resp => {
-                    console.log(JSON.stringify(resp.rows));
-                    res.status(200).send(resp.rows);
-                }).catch(err => {
-                    console.error("ERROR", err.stack);
-                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                });
-                return respuesta;
+        if (habilitarBusquedaNombre == 1) {
+            if (habilitarBusquedaCodigo == 0) {
+                parametrosBusqueda = parametrosBusqueda + `p.nombre::varchar ilike '%` + req.params.txt + `%'`;
+            } else {
+                parametrosBusqueda = parametrosBusqueda + `OR p.nombre::varchar ilike '%` + req.params.txt + `%'`;
+            }
 
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
         }
 
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
+        if (habilitarBusquedaDescripcion == 1) {
+            if (habilitarBusquedaCodigo + habilitarBusquedaNombre == 0) {
+                parametrosBusqueda = parametrosBusqueda + `p.descripcion::varchar ilike '%` + req.params.txt + `%'`;
+            } else {
+                parametrosBusqueda = parametrosBusqueda + `OR p.descripcion::varchar ilike '%` + req.params.txt + `%'`;
+            }
+
+        }
+        if (habilitarBusquedaCategoria == 1) {
+            if ((habilitarBusquedaCodigo + habilitarBusquedaNombre + habilitarBusquedaDescripcion) == 0) {
+                parametrosBusqueda = parametrosBusqueda + `cat.nombre::varchar ilike '%` + req.params.txt + `%'`;
+            } else {
+                parametrosBusqueda = parametrosBusqueda + `OR cat.nombre::varchar ilike '%` + req.params.txt + `%'`;
+            }
+
+        }
     }
-};
+
+    const query = ` 
+    SELECT p.id as productos_id
+            ,  p.*
+            , pc.*
+            , cat.nombre as nombre_categoria
+            , roma.get_imagen_principal_producto(p.id) as imagen
+    FROM roma.productos p
+    JOIN roma.productos_categorias pc ON p.id = pc.productos_id
+    JOIN roma.categorias cat ON pc.categorias_id = cat.id
+    ${parametrosBusqueda}
+    OFFSET (5* ((CASE 
+        WHEN ${req.params.paginaActual} > ${req.params.cantidadPaginas} THEN ${req.params.cantidadPaginas}
+        WHEN ${req.params.paginaActual} <1 THEN 1 
+        ELSE ${req.params.paginaActual} END)-1))
+    LIMIT 5 `;
+    
+    querySrv.getQueryResults(query, [])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 //<------------------PAGINACION FIN
 
 
-
 exports.getNovedadesProductosLimit = async function (req, res) {
-    try {
-    
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-
-        respuesta = await pool.query(qProductos.getNovedadesProductosLimit, [req.params.fecha_desde, req.params.fecha_hasta, req.params.limit] )
-            .then(resp => {
-                res.status(200).send(resp.rows);
-            }).catch(err => {
-                
-                console.error("ERROR", err);
-                res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-            });
-        return respuesta;
-    } catch (error) {
-        res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-    }
-};
-
-
-
-
-
-
-
-
-
-
+    querySrv.getQueryResults(qProductos.getNovedadesProductosLimit, [req.params.fecha_desde, req.params.fecha_hasta, req.params.limit])
+    .then(response => res.send(response.value))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 //------------------------------POST------------------------------//
 
 exports.insertProductoReturnId = function (req, res) {
@@ -642,138 +247,29 @@ exports.insertProductoReturnId = function (req, res) {
     })().catch(e => console.error(e.stack))
 };
 
-
 exports.insertNuevoPrecioProducto = function (req, res) {
-
-    var pool = new Pool({
-        connectionString: connectionString,
-    });
-
-    (async () => {
-        const client = await pool.connect()
-        try {
-            await client.query('BEGIN')
-            await client.query(`
-            INSERT INTO roma.precios_productos(
-                  monto
-                , fecha_desde
-                , productos_id
-                )
-            VALUES(
-                  `+ req.body.precio + `
-                , now()::date + INTERVAL '1 DAY'
-                , `+ req.body.productos_id + `
-                )`)
-
-
-            await client.query('COMMIT')
-            res.status(200).send({ "mensaje": "El Precio se cargo exitosamente" });
-        } catch (e) {
-            await client.query('ROLLBACK')
-            res.status(400).send({ "mensaje": "Ocurrio un error al cargar el nuevo precio" });
-            throw e
-        } finally {
-            client.release()
-        }
-    })().catch(e => console.error(e.stack))
-};
-
-
+    querySrv.getQueryResults(qProductos.insertNuevoPrecioProducto, [req.body.precio, req.body.productos_id])
+    .then(response => res.send({ "mensaje": "El Precio se cargo exitosamente" }))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 exports.insertCaracteristicasProducto = function (req, res) {
-
-    var pool = new Pool({
-        connectionString: connectionString,
-    });
-
-    (async () => {
-        const client = await pool.connect()
-        try {
-            await client.query('BEGIN')
-            console.log(req.body);
-            await client.query(`
-            INSERT INTO roma.productos_caracteristicas(
-                  nombre
-                , descripcion
-                , valor
-                , productos_id)
-            VALUES(
-                  '`+ req.body.nombre + `'
-                , '`+ req.body.descripcion + `'
-                , '`+ req.body.valor + `'
-                , `+ req.body.productos_id + `); `)
-
-            await client.query('COMMIT')
-            res.status(200).send({ "mensaje": "Las Caracteristicas se cargaron exitosamente" });
-        } catch (e) {
-            await client.query('ROLLBACK')
-            res.status(400).send({ "mensaje": "Ocurrio un error al cargar las caracteristicas" });
-            throw e
-        } finally {
-            client.release()
-        }
-    })().catch(e => console.error(e.stack))
-};
-
+    querySrv.getQueryResults(qProductos.insertCaracteristicasProducto, [req.body.nombre, req.body.descripcion, req.body.valor, req.body.productos_id])
+    .then(response => res.send({ "mensaje": "Las Caracteristicas se cargaron exitosamente" }))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 exports.eliminarCategoriasProductos = function (req, res) {
-
-    var pool = new Pool({
-        connectionString: connectionString,
-    });
-
-    (async () => {
-        const client = await pool.connect()
-        try {
-            await client.query('BEGIN')
-
-            await client.query(`
-            DELETE FROM roma.productos_categorias 
-            WHERE productos_id = `+ req.params.productos_id + ``)
-
-            await client.query('COMMIT')
-            res.status(200).send({ "mensaje": "Las imagenes se eliminaron exitosamente" });
-        } catch (e) {
-            await client.query('ROLLBACK')
-            res.status(400).send({ "mensaje": "Ocurrio un error al cargar la imagen" });
-            throw e
-        } finally {
-            client.release()
-        }
-    })().catch(e => console.error(e.stack))
-};
+    querySrv.getQueryResults(qProductos.eliminarCategoriasProductos, [req.params.productos_id])
+    .then(response => res.send({ "mensaje": "La Categoria se elimino exitosamente" }))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 exports.insertCategoriasProducto = function (req, res) {
-
-    var pool = new Pool({
-        connectionString: connectionString,
-    });
-
-    (async () => {
-        const client = await pool.connect()
-        try {
-            await client.query('BEGIN')
-
-            await client.query(`
-            INSERT INTO roma.productos_categorias(
-                  productos_id
-                , categorias_id)
-            VALUES(
-                  `+ req.body.productos_id + `
-                , `+ req.body.categorias_id + ` ); `)
-
-            await client.query('COMMIT')
-            res.status(200).send({ "mensaje": "Las Categorias se cargaron exitosamente" });
-        } catch (e) {
-            await client.query('ROLLBACK')
-            res.status(400).send({ "mensaje": "Ocurrio un error al cargar las Categorias" });
-            throw e
-        } finally {
-            client.release()
-        }
-    })().catch(e => console.error(e.stack))
-};
-
+    querySrv.getQueryResults(qProductos.insertCategoriasProducto, [req.body.productos_id, req.body.categorias_id])
+    .then(response => res.send({ "mensaje": "La Categoria y producto se relaciono exitosamente" }))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 exports.insertEmpleadoPersonaDomicilio = function (req, res) {
 
@@ -961,89 +457,26 @@ exports.actualizarDatosProductos = function (req, res) {
 
 
 exports.actualizarFechaHastaPrecio = function (req, res) {
-    var pool = new Pool({
-        connectionString: connectionString,
-    });
-
-    (async () => {
-        const client = await pool.connect()
-        try {
-            await client.query('BEGIN')
-            const { precios_productos } = await client.query(`
-            UPDATE roma.precios_productos
-            SET 
-                fecha_hasta= now()::date
-            WHERE productos_id = '`+ req.body.productos_id + `'`)
-
-            await client.query('COMMIT')
-            res.status(200).send({ "mensaje": "La fecha de cese fue actualizada exitosamente" });
-        } catch (e) {
-            await client.query('ROLLBACK')
-            res.status(400).send({ "mensaje": "Ocurrio un error actualizar el precio" });
-            throw e
-        } finally {
-            client.release()
-        }
-    })().catch(e => console.error(e.stack))
-};
+    querySrv.getQueryResults(qProductos.actualizarFechaHastaPrecio, [req.body.productos_id])
+    .then(response => res.send({ "mensaje": "La fecha de cese fue actualizada exitosamente" }))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 
 //------------------------------DELETE------------------------------//
 
 exports.eliminarCaracteristicasProductos = function (req, res) {
-
-    var pool = new Pool({
-        connectionString: connectionString,
-    });
-
-    (async () => {
-        const client = await pool.connect()
-        try {
-            await client.query('BEGIN')
-
-            await client.query(`
-            DELETE FROM roma.productos_caracteristicas 
-            WHERE productos_id = `+ req.params.productos_id + ``)
-
-            await client.query('COMMIT')
-            res.status(200).send({ "mensaje": "Las imagenes se eliminaron exitosamente" });
-        } catch (e) {
-            await client.query('ROLLBACK')
-            res.status(400).send({ "mensaje": "Ocurrio un error al cargar la imagen" });
-            throw e
-        } finally {
-            client.release()
-        }
-    })().catch(e => console.error(e.stack))
-};
+    querySrv.getQueryResults(qProductos.eliminarCaracteristicasProductos, [req.params.productos_id])
+    .then(response => res.send({ "mensaje": "Las caracteristicas del producto se eliminaron exitosamente" }))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 
 exports.eliminarImagenesProductos = function (req, res) {
-
-    var pool = new Pool({
-        connectionString: connectionString,
-    });
-
-    (async () => {
-        const client = await pool.connect()
-        try {
-            await client.query('BEGIN')
-
-            await client.query(`
-            DELETE FROM roma.productos_imagenes 
-            WHERE productos_id = `+ req.params.productos_id + ``)
-
-            await client.query('COMMIT')
-            res.status(200).send({ "mensaje": "Las imagenes se eliminaron exitosamente" });
-        } catch (e) {
-            await client.query('ROLLBACK')
-            res.status(400).send({ "mensaje": "Ocurrio un error al cargar la imagen" });
-            throw e
-        } finally {
-            client.release()
-        }
-    })().catch(e => console.error(e.stack))
-};
+    querySrv.getQueryResults(qProductos.eliminarImagenesProductos, [req.params.productos_id])
+    .then(response => res.send({ "mensaje": "Las imagenes del producto se eliminaron exitosamente" }))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 
 

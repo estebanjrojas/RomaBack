@@ -49,7 +49,27 @@ LEFT JOIN provincias prov ON ciu.provincias_id = prov.id
 WHERE cli.id = $1;
 `;
 
+exports.getCantidadPaginasClientes = `
+SELECT 
+	COUNT(*) as cantidad_registros,
+	(COUNT(*)/20 )+ (CASE WHEN COUNT(*) % 20 >0 THEN 1 ELSE 0 END) AS cantidad_paginas
+FROM (
+	SELECT cli.id as clientes_id, cli.fecha_alta, p.id as personas_id, p.* 
+	FROM roma.clientes cli
+	JOIN personas p ON cli.personas_id = p.id
+)x
+`;
 
+exports.getClientes = `
+SELECT cli.id as clientes_id, cli.fecha_alta, p.id as personas_id, p.* 
+FROM roma.clientes cli
+JOIN personas p ON cli.personas_id = p.id 
+OFFSET (20* ((CASE 
+	WHEN $1 > $2 THEN $2
+	WHEN $1 <1 THEN 1 
+	ELSE $1 END) -1))
+LIMIT 20
+`;
 
 //POST
 

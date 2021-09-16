@@ -110,6 +110,51 @@ LEFT JOIN seguridad.usuarios usr ON ps.id = usr.personas_id
 WHERE usr.nomb_usr is null
 `;
 
+exports.getCantidadPaginasEmpleados = `
+SELECT 
+    count(*) as cantidad_registros,
+    (count(*)/5 )+ (case when count(*) % 5 >0 then 1 else 0 end) as cantidad_paginas
+FROM (
+    SELECT em.id as empleados_id
+        , em.personas_id
+        , em.legajo
+        , em.fecha_ingreso
+        , em.descripcion
+        , gdt(3, em.oficina) as oficina
+        , ep.id as empresas_id
+        , ep.razon_social as empresa_razon_social
+        , ep.nombre_fantasia as empresa_nombre_fantasia
+        , ps.*
+    FROM roma.empleados em
+    JOIN personas ps ON em.personas_id = ps.id
+    JOIN roma.empresas ep ON em.empresas_id = ep.id
+)x
+`;
+
+exports.getEmpleados = `
+SELECT 
+    em.id as empleados_id
+    , em.personas_id
+    , em.legajo
+    , em.fecha_ingreso
+    , em.descripcion
+    , tab.descrip as oficina
+    , ep.id as empresas_id
+    , ep.razon_social as empresa_razon_social
+    , ep.nombre_fantasia as empresa_nombre_fantasia
+    , ps.*
+FROM roma.empleados em
+JOIN personas ps ON em.personas_id = ps.id
+JOIN roma.empresas ep ON em.empresas_id = ep.id
+JOIN tabgral tab ON em.oficina = tab.codigo AND tab.nro_tab = 3
+ORDER BY ps.apellido, ps.nombre
+OFFSET (5* ((CASE 
+    WHEN $1 > $1 THEN $2
+    WHEN $1 <1 THEN 1 
+    ELSE $1 END) -1))
+LIMIT 5
+`;
+
 exports.insertEmpleadoReturnId = `
 INSERT INTO roma.empleados(personas_id, legajo, fecha_ingreso, descripcion, empresas_id, oficina)
 VALUES($1, $2, $3, $4, $5, $6) RETURNING id; `;
