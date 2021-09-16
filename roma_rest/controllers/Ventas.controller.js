@@ -1,119 +1,39 @@
 const qVentas = require("./query/Ventas.js");
 const poolSrv = require("../services/PoolService");
-
+const querySrv = require("../services/QueryService");
 /* ---------------------------GET---------------------------- */
 
 exports.getVentasTodas = function (req, res) {
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(qVentas.getVentasTodas, [], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send(JSON.stringify(resp.rows));
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
-};
+    querySrv.getQueryResults(qVentas.getVentasTodas, [])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+}
 
 exports.getVentasBusqueda = function (req, res) {
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(qVentas.getVentasBusqueda, [req.params.texto_busqueda], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send(JSON.stringify(resp.rows));
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
-};
+    querySrv.getQueryResults(qVentas.getVentasBusqueda, [req.params.texto_busqueda])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+}
 
 exports.getVentaPorId = function (req, res) {
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(qVentas.getVentaPorId, [req.params.ventas_id], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send(JSON.stringify(resp.rows));
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
-};
+    querySrv.getQueryResults(qVentas.getVentaPorId, [req.params.ventas_id])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+}
 
 exports.getDetalleVentaPorVentasId = function (req, res) {
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(qVentas.getDetalleVentaPorVentasId, [req.params.ventas_id], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send(JSON.stringify(resp.rows));
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
-};
+    querySrv.getQueryResults(qVentas.getDetalleVentaPorVentasId, [req.params.ventas_id])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+}
 
 
 
 //-----------> PAGINACION INICIO :
 exports.getCantidadPaginasVentas = function (req, res) {
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(qVentas.getCantidadPaginasVentas, [], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send({ "regCantidadPaginas": resp.rows[0] });
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
+    querySrv.getQueryResults(qVentas.getCantidadPaginasVentas, [])
+    .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
 
 exports.getCantidadPaginasVentasTxt = function (req, res) {
@@ -179,25 +99,10 @@ exports.getCantidadPaginasVentasTxt = function (req, res) {
         ORDER BY fecha desc, v.id
     )x `;
 
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(query, [], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send({ "regCantidadPaginas": resp.rows[0] });
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
+    querySrv.getQueryResults(query, [])
+    .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+
 }
 
 exports.getVentas = function (req, res) {
@@ -226,25 +131,9 @@ exports.getVentas = function (req, res) {
         ELSE ${req.params.paginaActual} END) -1))
     LIMIT 5 `;
 
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(query, [], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send(resp.rows);
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
+    querySrv.getQueryResults(query, [])
+    .then(response => res.send(response.value))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
 
 exports.getVentasTxt = function (req, res) {
@@ -309,32 +198,14 @@ exports.getVentasTxt = function (req, res) {
         ELSE ${req.params.paginaActual} END)-1))
     LIMIT 5 `;
 
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(query, [], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send(resp.rows);
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
+    querySrv.getQueryResults(query, [])
+    .then(response => res.send(response.value))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
 //<------------------PAGINACION FIN
 
 
 /* ---------------------------POST---------------------------- */
-
-
 exports.insertVentaReturningFactura = function (req, res) {
     const clientes_id = req.body.cliente.clientes_id;
     const empleados_id = req.body.vendedor.empleados_id;
@@ -374,31 +245,11 @@ exports.insertVentaReturningFactura = function (req, res) {
 
 }
 
-
 /* ---------------------------PUT---------------------------- */
 
-
 exports.anularVenta = function (req, res) {
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(qVentas.anularVenta, [usuario, ventas_id], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "Ocurrio un error al anular la venta" }));
-                        return;
-                    }
-                    res.status(200).send({ "mensaje": "La venta se anulo exitosamente" });
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
+    querySrv.getQueryResults(qVentas.anularVenta, [usuario, ventas_id])
+    .then(response => res.send({ "mensaje": "La venta se anulo exitosamente" }))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+    
 }
-
-
-/* ---------------------------DELETE---------------------------- */

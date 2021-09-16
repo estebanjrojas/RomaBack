@@ -3,6 +3,7 @@ const configuracion = require("../utillities/config");
 let jwt = require('jsonwebtoken');
 const qUsuarios = require("./query/Usuarios.js");
 const poolSrv = require("../services/PoolService");
+const querySrv = require("../services/QueryService");
 
 async function generarTokenString(usuario, identificador) {
     try {
@@ -28,7 +29,6 @@ async function generarTokenString(usuario, identificador) {
     }
 
 }
-
 
 function generarToken(usuario, token_bd, llave_privada) {
     try {
@@ -77,7 +77,7 @@ exports.solicitarAccesoUsuario = function (req, res) {
     } catch (err) {
         res.status(400).send({ 'error': `${err}` });
     }
-};
+}
 
 exports.validarPassVieja = async function (req, res) {
     try {
@@ -102,187 +102,57 @@ exports.validarPassVieja = async function (req, res) {
 }
 
 
-
 exports.cambiarPassword = function (req, res) {
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(qUsuarios.cambiarPassword, [req.body.password, req.body.usuario], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "Ocurrio un error al actualizar el password" }));
-                        return;
-                    }
-                    res.status(200).send({ "mensaje": "El password fue actualizado exitosamente", "id": resp[0].id });
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
+    querySrv.getQueryResults(qUsuarios.cambiarPassword, [req.body.password, req.body.usuario])
+    .then(response => res.send({ "mensaje": "El password fue actualizado exitosamente", "id": response.value[0].id }))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
 
 exports.getDatosUsuario = function (req, res) {
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(qUsuarios.getDatosUsuario, [req.params.usuario], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send(JSON.stringify(resp.rows));
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
+    querySrv.getQueryResults(qUsuarios.getDatosUsuario, [req.params.usuario])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
 
 exports.getUsuariosTodos = function (req, res) {
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(qUsuarios.getUsuariosTodos, [], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send(JSON.stringify(resp.rows));
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
+    querySrv.getQueryResults(qUsuarios.getUsuariosTodos, [])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
 
 exports.getUsuariosBusqueda = function (req, res) {
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(qUsuarios.getUsuariosBusqueda, [req.params.texto_busqueda], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send(JSON.stringify(resp.rows));
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
-
+    querySrv.getQueryResults(qUsuarios.getUsuariosBusqueda, [req.params.texto_busqueda])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
 
 
 exports.getDatosUsuariosCargados = function (req, res) {
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(qUsuarios.getDatosUsuariosCargados, [req.params.id], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send(JSON.stringify(resp.rows));
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
+    querySrv.getQueryResults(qUsuarios.getDatosUsuariosCargados, [req.params.id])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
 
 exports.getPerfilesAsignados = function (req, res) {
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(qUsuarios.getPerfilesAsignados, [req.params.id], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send(JSON.stringify(resp.rows));
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
+    querySrv.getQueryResults(qUsuarios.getPerfilesAsignados, [req.params.id])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
 
 exports.getPerfilesSinAsignar = function (req, res) {
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(qUsuarios.getPerfilesSinAsignar, [req.params.id], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send(JSON.stringify(resp.rows));
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
+    querySrv.getQueryResults(qUsuarios.getPerfilesSinAsignar, [req.params.id])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+   
 }
 
 
 
 //-----------> PAGINACION INICIO :
 exports.getCantidadPaginasUsuarios = function (req, res) {
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(qUsuarios.getCantidadPaginasUsuarios, [], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send({ "regCantidadPaginas": resp.rows[0] });
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
-
+    querySrv.getQueryResults(qUsuarios.getCantidadPaginasUsuarios, [])
+    .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
 
 exports.getCantidadPaginasUsuariosTxt = function (req, res) {
@@ -324,25 +194,9 @@ exports.getCantidadPaginasUsuariosTxt = function (req, res) {
         ${parametrosBusqueda}
     )x `;
 
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(query, [], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send({ "regCantidadPaginas": resp.rows[0] });
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
+    querySrv.getQueryResults(query, [])
+    .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
 
 exports.getUsuarios = function (req, res) {
@@ -358,25 +212,9 @@ exports.getUsuarios = function (req, res) {
         ELSE ${req.params.paginaActual} END) -1))
     LIMIT 5 `;
 
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(query, [], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send(resp.rows);
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
+    querySrv.getQueryResults(query, [])
+    .then(response => res.send(response.value))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 
 }
 
@@ -420,25 +258,9 @@ exports.getUsuariosTxt = function (req, res) {
         ELSE ${req.params.paginaActual} END)-1))
     LIMIT 5 `;
 
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(query, [], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "No se obtubieron datos" }));
-                        return;
-                    }
-                    res.status(200).send(resp.rows);
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
+    querySrv.getQueryResults(query, [])
+    .then(response => res.send(response.value))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
 //<------------------PAGINACION FIN
 
@@ -458,132 +280,35 @@ exports.insertUsuarioReturnId = function (req, res) {
     } else {
         debug = 0;
     }
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(qUsuarios.insertUsuarioReturnId, [nomb_usr, usuario, debug, personas_id], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "Ocurrio un error al cargar el Usuario" }));
-                        return;
-                    }
-                    res.status(200).send({ "mensaje": "El USUARIO fue guardado exitosamente", "id": resp.rows[0].id });
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
+
+    querySrv.getQueryResults(qUsuarios.insertUsuarioReturnId, [nomb_usr, usuario, debug, personas_id])
+    .then(response => res.send({ "mensaje": "El USUARIO fue guardado exitosamente", "id": response.value[0].id }))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
 
 
 exports.insertPerfilesAsignados = function (req, res) {
     const usuarios_id = (req.body.usuarios_id != undefined) ? req.body.usuarios_id : `null`;
     const perfiles_id = (req.body.perfiles_id != undefined) ? req.body.perfiles_id : `null`;
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(qUsuarios.insertPerfilesAsignados, [usuarios_id, perfiles_id], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "Ocurrio un error al cargar el Perfil" }));
-                        return;
-                    }
-                    res.status(200).send({ "mensaje": "El Perfil fue guardado exitosamente", "id": resp.rows[0].id });
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
+
+    querySrv.getQueryResults(qUsuarios.insertPerfilesAsignados, [usuarios_id, perfiles_id])
+    .then(response => res.send({ "mensaje": "El Perfil fue guardado exitosamente", "id": response.value[0].id }))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
 
 
 exports.actualizarDatosUsuarios = function (req, res) {
     res.status(400).send("Este metodo no tiene consulta...");
-    /*var pool = new Pool({
-        connectionString: connectionString,
-    });
-
-    (async () => {
-        const client = await pool.connect()
-        try {
-
-            let codigo = (req.body.codigo != undefined) ? req.body.codigo : `null`;
-            let nombre = (req.body.nombre_producto != undefined) ? `'` + req.body.nombre_producto + `'` : `null`;
-            let descripcion = (req.body.descripcion_producto != undefined) ? `'` + req.body.descripcion_producto + `'` : `null`;
-            let descripcion_factura = (req.body.descripcion_factura != undefined) ? `'` + req.body.descripcion_factura + `'` : `null`;
-            let tipo_producto = (req.body.tipo != undefined) ? req.body.tipo : `null`;
-
-            await client.query('BEGIN')
-            const { rows } = await client.query(`
-            UPDATE roma.productos
-            SET 
-                codigo= `+ codigo + `, 
-                nombre= `+ nombre + `, 
-                descripcion= `+ descripcion + `, 
-                descripcion_factura= `+ descripcion_factura + `, 
-                tipo_producto= `+ tipo_producto + `, 
-                fecha_desde= now()::date 
-            WHERE id ='`+ req.body.id_producto + `' returning id`)
-
-
-            const { precios_productos } = await client.query(`
-            UPDATE roma.precios_productos
-            SET 
-                monto= `+ req.body.precio + `, 
-                unidad= `+ req.body.unidad + `, 
-                fecha_desde= now()::date
-            WHERE productos_id = '`+ req.body.id_producto + `'`)
-
-            await client.query('COMMIT')
-            res.status(200).send({ "mensaje": "El Producto fue actualizado exitosamente", "id": rows[0].id });
-        } catch (e) {
-            await client.query('ROLLBACK')
-            res.status(400).send({ "mensaje": "Ocurrio un error actualizar al fallecido" });
-            throw e
-        } finally {
-            client.release()
-        }
-    })().catch(e => console.error(e.stack))*/
-};
-
-
-
-/*---------------------------PUT----------------------------- */
-
+}
 
 /*---------------------------DELETE----------------------------- */
 
 
 exports.deletePerfiles = function (req, res) {
-    try {
-        const pool = poolSrv.getInstance().getPool();
-        pool.connect((err, client, release) => {
-            if (err) {
-                res.status(400).send(JSON.stringify({ "mensaje": `Pool Error ${err}` }));
-            } else {
-                client.query(qUsuarios.deletePerfiles, [req.params.id_usuario], (err, resp) => {
-                    release();
-                    if (err) {
-                        res.status(400).send(JSON.stringify({ "mensaje": "Ocurrio un error al eliminar el Perfil" }));
-                        return;
-                    }
-                    res.status(200).send({ "mensaje": "El Perfil fue eliminado exitosamente"});
-                });
-            }
-        })
-    } catch (err) {
-        res.status(400).send({ 'error': `${err}` });
-    }
-
-};
+    querySrv.getQueryResults(qUsuarios.deletePerfiles, [req.params.id_usuario])
+    .then(response => res.send({ "mensaje": "El Perfil fue eliminado exitosamente"}))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+}
 
 
 
