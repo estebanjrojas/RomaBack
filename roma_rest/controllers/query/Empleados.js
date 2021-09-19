@@ -149,9 +149,9 @@ JOIN roma.empresas ep ON em.empresas_id = ep.id
 JOIN tabgral tab ON em.oficina = tab.codigo AND tab.nro_tab = 3
 ORDER BY ps.apellido, ps.nombre
 OFFSET (5* ((CASE 
-    WHEN $1 > $1 THEN $2
-    WHEN $1 <1 THEN 1 
-    ELSE $1 END) -1))
+    WHEN $1::integer > $1::integer THEN $2::integer
+    WHEN $1::integer <1 THEN 1 
+    ELSE $1::integer END) -1))
 LIMIT 5
 `;
 

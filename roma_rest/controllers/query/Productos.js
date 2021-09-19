@@ -121,9 +121,9 @@ FROM roma.productos p
 JOIN roma.productos_categorias pc ON p.id = pc.productos_id
 JOIN roma.categorias cat ON pc.categorias_id = cat.id 
 OFFSET (5* ((CASE 
-    WHEN $1 > $2 THEN  $2 
-    WHEN $1 <1 THEN 1 
-    ELSE $1 END) -1))
+    WHEN $1::integer > $2::integer THEN  $2::integer 
+    WHEN $1::integer <1 THEN 1 
+    ELSE $1::integer END) -1))
 LIMIT 5`;
 
 exports.insertProductosReturningId = `

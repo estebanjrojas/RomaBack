@@ -35,9 +35,9 @@ SELECT
 FROM roma.categorias
 ORDER BY nombre
 OFFSET (5* ((CASE 
-    WHEN $1 > $2 THEN $2
-    WHEN $1 <1 THEN 1 
-    ELSE $1 END) -1))
+    WHEN $1::integer > $2::integer THEN $2::integer
+    WHEN $1::integer <1 THEN 1 
+    ELSE $1::integer END) -1))
 LIMIT 5
 `;
 
