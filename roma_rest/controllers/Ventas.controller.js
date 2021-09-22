@@ -204,6 +204,11 @@ exports.getVentasTxt = function (req, res) {
 }
 //<------------------PAGINACION FIN
 
+exports.getVentasDiariasEmpleados = function (req, res) {
+    querySrv.getQueryResults(qVentas.ventasDiariasEmpleados, [req.params.fecha])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+}
 
 /* ---------------------------POST---------------------------- */
 exports.insertVentaReturningFactura = function (req, res) {

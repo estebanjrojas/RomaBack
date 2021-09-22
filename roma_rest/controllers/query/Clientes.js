@@ -28,7 +28,11 @@ LEFT JOIN domicilios dm ON p.domicilios_id = dm.id
 LEFT JOIN ciudades cl ON dm.ciudades_id = cl.id
 LEFT JOIN provincias pv ON cl.provincias_id = pv.id
 LEFT JOIN paises pc ON pv.paises_id = pc.id 
-WHERE $1::varchar ilike '%$2%'
+WHERE CASE 
+		WHEN $1::varchar = '1' THEN p.apellido::varchar ilike '%' || $2 || '%'
+		WHEN $1::varchar = '2' THEN p.nombre::varchar ilike '%' || $2 || '%'
+		WHEN $1::varchar = '3' THEN p.nro_doc::varchar ilike '%' || $2 || '%'
+	END
 `;
 
 exports.getDatosClientePorId = `

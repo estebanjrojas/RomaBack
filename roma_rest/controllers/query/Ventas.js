@@ -119,6 +119,19 @@ FROM (
 )x
 `;
 
+exports.ventasDiariasEmpleados = `
+SELECT emp.id as empleados_id, 
+	TRIM(coalesce(prs.apellido, '')||' '||coalesce(prs.nombre, '')) as nombre,
+	SUM(monto_total) as total_vendido
+FROM roma.ventas vts
+JOIN roma.empleados emp ON vts.empleados_id = emp.id
+JOIN public.personas prs ON emp.personas_id = prs.id
+WHERE vts.fecha = $1
+AND vts.fecha_anulacion is null
+GROUP BY emp.id, prs.apellido, prs.nombre
+ORDER BY prs.apellido, prs.nombre, emp.id
+`;
+
 exports.insertReturnId = `
 INSERT INTO roma.ventas(fecha, monto_total, empresas_id, empleados_id, clientes_id)
 VALUES(now()::date, $1, $2, $3, $4)
