@@ -1,158 +1,37 @@
-//Conexión a Postgres
-const configuracion = require("../utillities/config");
-var { Pool } = require('pg');
-const connectionString = configuracion.bd;
-
-
+const qDomicilios = require("./query/Domicilios");
+const querySrv = require("../services/QueryService");
 
 exports.getDomicilioByNroDoc = function (req, res) {
-    try{
-        var respuesta = JSON.stringify({"mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        try{
-            (async ()=>{
-                respuesta = await pool.query(`             
-                SELECT * 
-                FROM personas prs
-                JOIN domicilios dom on prs.domicilios_id = dom.id
-                JOIN ciudades ciu on dom.ciudades_id = ciu.id
-                WHERE prs.nro_doc =   `+req.params.nro_doc)
-                .then(resp => {
-                    console.log(JSON.stringify(resp.rows));
-                    res.status(200).send(JSON.stringify(resp.rows));
-                }).catch(err=>{
-                    console.error("ERROR", err.stack);
-                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                });
-                return respuesta;
-    
-            })()
-            
-        } catch(error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    }catch(err)
-    {
-        res.status(400).send({'mensaje': 'Ocurrio un Error'});
-    }
-    
-};
-
-
+    querySrv.getQueryResults(qDomicilios.getDomicilioPersonaByNroDoc, [req.params.nro_doc])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 exports.getCalles = function (req, res) {
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-
-        try {
-            (async () => {
-
-                let query = `SELECT *
-                FROM calles
-                WHERE nombre ilike '%`+req.params.calles_nombre+`%' 
-                ORDER BY nombre
-                LIMIT 5`;
-                console.log(query);
-                //respuesta = await pool.query(qDomicilios.getCalles, [req.params.calles_nombre])
-                respuesta = await pool.query(query)
-                    .then(resp => {
-                        console.log('erroreee');
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.log('erroreee2');
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta", err }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
-    }
-};
-
+    querySrv.getQueryResults(qDomicilios.getCalles, [req.params.calles_nombre])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 exports.getCallesEmpty = function (req, res) {
-    try {
-        var respuesta = JSON.stringify({ "mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-
-        try {
-            (async () => {
-
-                let query = `SELECT *
-                FROM calles
-                ORDER BY nombre
-                LIMIT 5`;
-                console.log(query);
-                //respuesta = await pool.query(qDomicilios.getCalles, [req.params.calles_nombre])
-                respuesta = await pool.query(query)
-                    .then(resp => {
-                        console.log('erroreee');
-                        console.log(JSON.stringify(resp.rows));
-                        res.status(200).send(JSON.stringify(resp.rows));
-                    }).catch(err => {
-                        console.log('erroreee2');
-                        console.error("ERROR", err.stack);
-                        res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta", err }));
-                    });
-                return respuesta;
-
-            })()
-
-        } catch (error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
-
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
-    }
-};
-
+    querySrv.getQueryResults(qDomicilios.getCallesEmpty, [])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
 
 exports.insert = function (req, res) {
-    try{
-        var respuesta = JSON.stringify({"mensaje": "La funcion no responde" });
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        try{
-            (async ()=>{
-                respuesta = await pool.query(`             
-                INSERT INTO domicilios(calle, numero, piso, depto, manzana, lote, block, barrio, ciudades_id)
-                VALUES ('`+req.body.calle+`', '`+req.body.numero+`', '`+req.body.lote+`', '`+req.body.bloc+`', '`+req.body.barrio+`', `+req.body.ciudades_id+`)
-                RETURNING id;`)
-                .then(resp => {
-                    console.log(JSON.stringify(resp.rows));
-                    res.status(200).send({"domicilios_id" : resp.rows[0].id});
-                }).catch(err=>{
-                    console.error("ERROR", err.stack);
-                    res.status(400).send(JSON.stringify({ "mensaje": "Sin resultados de la consulta" }));
-                });
-                return respuesta;
-    
-            })()
-            
-        } catch(error) {
-            res.status(400).send(JSON.stringify({ "mensaje": error.stack }));
-        }
+    //Parametros para insertar el domicilio
+    let calle = (req.body.calle!=undefined)? `'`+req.body.calle+`'` : `null`;
+    let numero = (req.body.numero!=undefined)? `'`+req.body.numero+`'` : `null`;
+    let piso = (req.body.piso!=undefined)? `'`+req.body.piso+`'` : `null`;
+    let depto = (req.body.depto!=undefined)? `'`+req.body.depto+`'` : `null`;
+    let manzana = (req.body.manzana!=undefined)? `'`+req.body.manzana+`'` : `null`;
+    let lote = (req.body.lote!=undefined)? `'`+req.body.lote+`'` : `null`;
+    let block = (req.body.block!=undefined)? `'`+req.body.block+`'` : `null`;
+    let barrio = (req.body.barrio!=undefined)? `'`+req.body.barrio+`'` : `null`;
+    let ciudades_id = (req.body.ciudades_id!=undefined)? `'`+req.body.ciudades_id+`'` : `null`;
 
-    }catch(err)
-    {
-        res.status(400).send({'mensaje': 'Ocurrio un Error'});
-    }
-};
+    querySrv.getQueryResults(qDomicilios.insertDomiciliosReturnIdFull, [calle, numero, piso, depto, manzana, lote, block, barrio, ciudades_id])
+    .then(response => res.send({"domicilios_id" : response.value[0].id}))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error al cargar el domicilio ${err}` })));
+}

@@ -1,8 +1,6 @@
 const configuracion = require("../utillities/config");
 const qFacturas = require("../controllers/query/Facturas");
-let jwt = require('jsonwebtoken');
-var { Pool } = require('pg');
-const connectionString = configuracion.bd;
+const querySrv = require("../services/PoolService");
 const AfipAPI = require('@afipsdk/afip.js');
 const afip = new AfipAPI({ CUIT: configuracion.cuit_factura_electronica
                         , production: configuracion.ambiente_produccion_factura_electronica
@@ -17,7 +15,7 @@ exports.ultimoNumeroFacturaAprobada = async function(req, res) {
     try {
          lastVoucher = await afip.ElectronicBilling.getLastVoucher(req.params.punto_venta, req.params.tipo_comprobante);
     } catch(e) {
-        console.log(e);
+        console.error(e);
          lastVoucher = e;
     }
  
@@ -25,55 +23,26 @@ exports.ultimoNumeroFacturaAprobada = async function(req, res) {
 }
 
 generarFacturaReturnId = async function(ventas_id, tipo_comprobante){
-    
-    try {
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        let facturas_id = -1;
-        try {
-  
-            await pool.query(qFacturas.generarFacturaReturnId, [ventas_id, tipo_comprobante])
-                    .then(resp => {
-                        facturas_id = resp.rows[0].facturas_id;
-                     //   console.log(facturas_id);
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                    });
-            return facturas_id;
-
-        } catch (error) {
-            console.error("ERROR", error.stack);
-            return -1;
-        }
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
-    }
-};
+    querySrv.getQueryResults(qFacturas.generarFacturaReturnId, [ventas_id, tipo_comprobante])
+    .then(response => {
+      return response.value[0].facturas_id;
+    })
+    .catch(err => {
+      console.error(`Ha ocurrido Error ${err}`);
+      return -1;
+    });
+}
 
 facturaRechazada = async function(facturas_id, mensaje){
-    
-    try {
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        try {
-            await pool.query(qFacturas.facturaRechazada, [facturas_id, mensaje])
-                    .then(resp => {
-                        facturas_id = resp.rows[0].facturas_id;
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                    });
-            return facturas_id;
-
-        } catch (error) {
-            console.error("ERROR", error.stack);
-            return -1;
-        }
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'");
-    }
-};
+    querySrv.getQueryResults(qFacturas.facturaRechazada, [facturas_id, mensaje])
+    .then(response => {
+      return response.value[0].facturas_id;
+    })
+    .catch(err => {
+      console.error(`Ha ocurrido Error ${err}`);
+      return -1;
+    });
+}
 
 guardarFacturaAprobada = async function(facturas_id, datos) {
     let respuesta_afip_id = -1;
@@ -94,77 +63,42 @@ guardarFacturaAprobada = async function(facturas_id, datos) {
     const dresultado = datos['FeDetResp'].FECAEDetResponse.Resultado;
     const cae = datos['FeDetResp'].FECAEDetResponse.CAE;
     const caeFchVto = datos['FeDetResp'].FECAEDetResponse.CAEFchVto;
-    try {
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        try {
-            await pool.query(qFacturas.insertRespuestaAprobada, [facturas_id, 
-            cuit, ptovta, cbtetipo, fchproceso, cantreg, resultado, reproceso,
-            concepto, doctipo, docnro, cbtedesde, cbtehasta, cbtefch, dresultado, 
-            cae, caeFchVto])
-                    .then(resp => {
-                        respuesta_afip_id = resp.rows[0].respuesta_afip_id;
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                    });
-            return respuesta_afip_id;
 
-        } catch (error) {
-            console.error("ERROR", error.stack);
-            return -1;
-        }
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
-    }
-
+    querySrv.getQueryResults(qFacturas.insertRespuestaAprobada, [facturas_id, 
+        cuit, ptovta, cbtetipo, fchproceso, cantreg, resultado, reproceso,
+        concepto, doctipo, docnro, cbtedesde, cbtehasta, cbtefch, dresultado, 
+        cae, caeFchVto])
+    .then(response => {
+      return response.value[0].respuesta_afip_id;
+    })
+    .catch(err => {
+      console.error(`Ha ocurrido Error ${err}`);
+      return -1;
+    });
 }
 
 
 setCaeVtoFacturaAprobada = async function(facturas_id){
-    let respuesta = -1;
-    try {
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-        try {
-            await pool.query(qFacturas.setCaeFchVto, [facturas_id])
-                    .then(resp => {
-                        respuesta = resp.rows[0].respuesta;
-                    }).catch(err => {
-                        console.error("ERROR", err.stack);
-                    });
-            return respuesta;
-
-        } catch (error) {
-            console.error("ERROR", error.stack);
-            return -1;
-        }
-    } catch (err) {
-        res.status(400).send("{'mensaje': 'Ocurrio un Error'}");
-    }
-};
+    querySrv.getQueryResults(qFacturas.setCaeFchVto, [facturas_id])
+    .then(response => {
+      return response.value[0].respuesta;
+    })
+    .catch(err => {
+      console.error(`Ha ocurrido Error ${err}`);
+      return -1;
+    });
+}
 
 getDatosComprobante = async function(facturas_id) {
-    //console.log(`getDatosComprobante(${facturas_id})!!!`);
-    try {
-        var pool = new Pool({
-            connectionString: connectionString,
-        });
-         try {
-              let comp = await pool.query(qFacturas.getDatosFactura, [facturas_id]);
-              
-             return comp.rows[0];
-
-        } catch (error) {
-            console.error("ERROR", error.stack);
-            return null;
-        }
-    } catch (err) {
-        console.error("ERROR", error.stack);
-        return null;
-    }
-};
+    querySrv.getQueryResults(qFacturas.getDatosFactura, [facturas_id])
+    .then(response => {
+      return response.value[0];
+    })
+    .catch(err => {
+      console.error(`Ha ocurrido Error ${err}`);
+      return null;
+    });
+}
 
 exports.generarFacturaElectronica = async function(req, res) {
     

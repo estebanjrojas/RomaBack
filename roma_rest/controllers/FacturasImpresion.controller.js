@@ -5,10 +5,7 @@ const Puppeteer = require('puppeteer');
 const Handlebars = require('handlebars');
 const ReadFile = Util.promisify(Fs.readFile);
 const qFacturas = require("../controllers/query/Facturas");
-var { Pool } = require('pg');
-const configuracion = require("../utillities/config");
-const connectionString = configuracion.bd;
-
+const querySrv = require("../services/PoolService");
 
 class Invoice {  
   async html(data) {
@@ -32,52 +29,30 @@ class Invoice {
     await page.setContent(html);
 
     return page.pdf({path: './utillities/pdf_generados/facturas/invoice.pdf'});
-  }
-
-
-    
+  }   
 }
 
-
 getDatosComprobante = async function(facturas_id) {
-  try {
-      var pool = new Pool({
-          connectionString: connectionString,
-      });
-      try {
-            let comp = await pool.query(qFacturas.getDatosFacturaImpresion, [facturas_id]);
-            
-          return comp.rows[0];
-
-      } catch (error) {
-          console.error("ERROR", error.stack);
-          return null;
-      }
-  } catch (err) {
-      console.error("ERROR", err.stack);
+  querySrv.getQueryResults(qFacturas.getDatosFacturaImpresion, [facturas_id])
+    .then(response => {
+      return response.value[0];
+    })
+    .catch(err => {
+      console.error(`Ha ocurrido Error ${err}`);
       return null;
-  }
-};
+    });
+}
 
 getDetallesComprobante = async function(facturas_id) {
-  try {
-      var pool = new Pool({
-          connectionString: connectionString,
-      });
-      try {
-            let comp = await pool.query(qFacturas.getDetalleFacturaImpresion, [facturas_id]);
-            
-          return comp.rows;
-
-      } catch (error) {
-          console.error("ERROR", error.stack);
-          return null;
-      }
-  } catch (err) {
-      console.error("ERROR", err.stack);
+  querySrv.getQueryResults(qFacturas.getDetalleFacturaImpresion, [facturas_id])
+    .then(response => {
+      return response.value;
+    })
+    .catch(err => {
+      console.error(`Ha ocurrido Error ${err}`);
       return null;
-  }
-};
+    });
+}
 
 
 
