@@ -15,6 +15,10 @@ router.route('/getVentas/:paginaActual/:cantidadPaginas/:busca_fecha/:busca_nomb
 router.route('/getVentas/:paginaActual/:cantidadPaginas/:busca_fecha/:busca_nombre/:busca_vendedor/:busca_monto/:txt').get(middleware.checkToken, Ctrl.getVentasTxt);
 //------> Paginación Fin
 router.route('/getVentasDiariasEmpleados/:fecha').get(middleware.checkToken, Ctrl.getVentasDiariasEmpleados);
+router.route('/ultimasVentas/').get(middleware.checkToken, Ctrl.getUltimasVentas);
+router.route('/ultimasVentasEmpleado/:empleados_id').get(middleware.checkToken, Ctrl.getUltimasVentasEmpleado);
+router.route('/estadisticasVentasDiarias/:fecha_desde/:fecha_hasta').get(middleware.checkToken, Ctrl.estadisticasVentasDiarias);
+router.route('/estadisticasVentasDiariasEmpleado/:fecha_desde/:fecha_hasta/:empleados_id').get(middleware.checkToken, Ctrl.estadisticasVentasDiariasEmpleado);
 
 //POST
 router.route('/insertVentaReturningFactura/').post(middleware.checkToken, Ctrl.insertVentaReturningFactura);

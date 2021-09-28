@@ -132,6 +132,46 @@ GROUP BY emp.id, prs.apellido, prs.nombre
 ORDER BY prs.apellido, prs.nombre, emp.id
 `;
 
+exports.ultimasVentas = `
+SELECT vts.id, vts.monto_total, 
+	sum(vdt.cantidad) as cantidad_articulos,
+	vts.fecha,
+	TRIM(coalesce(prs.apellido, '')||' '||coalesce(prs.nombre, '')) as empleado
+FROM roma.ventas vts
+JOIN roma.ventas_detalle vdt ON vts.id = vdt.ventas_id
+JOIN roma.empleados emp ON vts.empleados_id = emp.id
+JOIN public.personas prs ON emp.personas_id = prs.id
+WHERE vts.fecha_anulacion is null
+GROUP BY vts.id, vts.monto_total, vts.fecha, prs.apellido, prs.nombre
+ORDER BY fecha desc , vts.id desc
+LIMIT 5
+`;
+
+exports.ultimasVentasEmpleado = `
+SELECT vts.id, vts.monto_total, 
+	sum(vdt.cantidad) as cantidad_articulos,
+	vts.fecha,
+	TRIM(coalesce(prs.apellido, '')||' '||coalesce(prs.nombre, '')) as empleado
+FROM roma.ventas vts
+JOIN roma.ventas_detalle vdt ON vts.id = vdt.ventas_id
+JOIN roma.empleados emp ON vts.empleados_id = emp.id
+JOIN public.personas prs ON emp.personas_id = prs.id
+WHERE vts.fecha_anulacion is null
+AND emp.id = $1
+GROUP BY vts.id, vts.monto_total, vts.fecha, prs.apellido, prs.nombre
+ORDER BY fecha desc , vts.id desc
+LIMIT 5
+`;
+
+exports.estadisticasVentasDiarias = `
+select * 
+from roma.get_estadisticas_ventas_diarias($1::date, $2::date);`;
+
+
+exports.estadisticasVentasDiariasEmpleado = `
+select * 
+from roma.get_estadisticas_ventas_diarias($1::date, $2::date, $3::bigint);`;
+
 exports.insertReturnId = `
 INSERT INTO roma.ventas(fecha, monto_total, empresas_id, empleados_id, clientes_id)
 VALUES(now()::date, $1, $2, $3, $4)

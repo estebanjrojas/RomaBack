@@ -6,34 +6,25 @@ SELECT * FROM personas WHERE tipo_doc = $1 AND nro_doc = $2`;
 
 //POST
 exports.insertReturingId = `
-INSERT INTO personas(nro_doc, tipo_doc
-    , apellido, nombre
-    , telefono, telefono_cel, email
-    , fecha_nac, sexo, tipo_persona
-    , fecha_create, usuario, fecha_mov
-    , estado_civil
-    , fecha_cese, usuario_carga, fecha_carga
-    , telefono_caracteristica, celular_caracteristica
-    , domicilios_id)
-VALUES($1, $2
-    , $3, $4
-    , $5, $6, $7
-    , $8, $9, $10
-    , now(), $11, now()
-    , $12
-    , $13, $14, $15
-    , $16, $17
-    , $18
-    ) RETURNING id;
+INSERT INTO public.personas(
+	nro_doc, tipo_doc, apellido, nombre, telefono, 
+	telefono_cel, email, fecha_nac, sexo, tipo_persona, 
+	fecha_create, usuario, fecha_mov, estado_civil, 
+	fecha_cese, usuario_carga, fecha_carga, 
+	telefono_caracteristica, celular_caracteristica, domicilios_id)
+	VALUES ($1, $2, $3, $4,	$5, 
+			$6, $7, $8, $9, $10, 
+			now(), $11, now(), $12, 
+			$13, $14, now(),
+			$15, $16, $17) RETURNING id;
 `;
-
 
 exports.insertPersonaReturningId = `
 INSERT INTO personas(
     nro_doc, tipo_doc, apellido, nombre, 
     telefono, telefono_cel, email, fecha_nac, 
     sexo, tipo_persona, fecha_create, 
-    usuario, fecha_mov, usuario_carga
+    usuario, fecha_mov, usuario_carga,
     fecha_carga, domicilios_id)
 VALUES(
     $1, $2, $3, $4, 

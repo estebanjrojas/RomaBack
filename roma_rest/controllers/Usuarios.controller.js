@@ -271,8 +271,8 @@ exports.getUsuariosTxt = function (req, res) {
 exports.insertUsuarioReturnId = function (req, res) {
     let debug = 0;
     const personas_id = (req.body.personas_id != undefined) ? req.body.personas_id : `null`;
-    const nomb_usr = (req.body.nombre_usuario != undefined) ? `'` + req.body.nombre_usuario + `'` : `null`;
-    const usuario = (req.body.usuario != undefined) ? `'` + req.body.usuario + `'` : `null`;
+    const nomb_usr = (req.body.nombre_usuario != undefined) ? req.body.nombre_usuario  : `null`;
+    const usuario = (req.body.usuario != undefined) ? req.body.usuario : `null`;
     const check_debug = (req.body.chk_debug != undefined) ? req.body.chk_debug : `null`;
 
     if (check_debug) {

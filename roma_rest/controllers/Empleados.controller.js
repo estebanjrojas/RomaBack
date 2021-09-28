@@ -222,8 +222,7 @@ exports.guardarEmpleadoPersonaDomicilio = function (req, res) {
     let estado_civil = (req.body.estado_civil != undefined) ? req.body.estado_civil : null;
     let fecha_cese = (req.body.fecha_cese != undefined) ? req.body.fecha_cese : null;
     let usuario_carga = (req.body.usuario_carga != undefined) ? req.body.usuario_carga : null;
-    let ip_carga = req.ip;
-    let fecha_carga = `now()`;
+ 
     let telefono_caracteristica = (req.body.telefono_caracteristica != undefined) ? req.body.telefono_caracteristica : null;
     let celular_caracteristica = (req.body.celular_caracteristica != undefined) ? req.body.celular_caracteristica : null;
     let personas_id = (req.body.personas_id != undefined || req.body.personas_id != '') ? req.body.personas_id : null;
@@ -240,7 +239,7 @@ exports.guardarEmpleadoPersonaDomicilio = function (req, res) {
     if (domicilios_id == undefined || domicilios_id == 'null') {
         queryDomicilio = {
             name: 'insert-domicilios',
-            text: qDomicilios.insertDomiciliosReturnId,
+            text: qDomicilios.insertDomiciliosReturnIdFull,
             values: [calle, numero, piso, depto, manzana, lote, block, barrio, ciudades_id]
         };
     }
@@ -254,13 +253,17 @@ exports.guardarEmpleadoPersonaDomicilio = function (req, res) {
 
     querySrv.getQueryResults(queryDomicilio.text, queryDomicilio.values)
     .then(domiciliosResp => {
-        if (query1.name == 'insert-domicilio') { domicilios_id = domiciliosResp.value[0].id; }
+        if (queryDomicilio.name == 'insert-domicilio') { domicilios_id = domiciliosResp.value[0].id; }
         let queryPersona;
         if (personas_id == undefined || personas_id == 'null') {
             queryPersona = {
                 name: 'insert-personas',
-                text: qPersonas.insertPersonaReturningId,
-                values: [nro_doc, tipo_doc, apellido, nombre, telefono, celular, email, fecha_nac, sexo, tipo_persona, ip, usuario, estado_civil, fecha_cese, usuario_carga, ip_carga, fecha_carga, telefono_caracteristica, celular_caracteristica, domicilios_id]
+                text: qPersonas.insertReturingId,
+                values: [nro_doc, tipo_doc, apellido, nombre, telefono, 
+                    celular, email, fecha_nac, sexo, tipo_persona, 
+                    usuario, estado_civil, 
+                    fecha_cese, usuario_carga,
+                    telefono_caracteristica, celular_caracteristica, domicilios_id]
             };
         }
         else {

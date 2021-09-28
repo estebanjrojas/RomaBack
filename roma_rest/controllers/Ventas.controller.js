@@ -210,6 +210,30 @@ exports.getVentasDiariasEmpleados = function (req, res) {
     .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
 
+exports.getUltimasVentas = function (req, res) {
+    querySrv.getQueryResults(qVentas.ultimasVentas, [])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+}
+
+exports.getUltimasVentasEmpleado = function (req, res) {
+    querySrv.getQueryResults(qVentas.ultimasVentasEmpleado, [req.params.empleados_id])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+}
+
+exports.estadisticasVentasDiarias = function (req, res) {
+    querySrv.getQueryResults(qVentas.estadisticasVentasDiarias, [req.params.fecha_desde, req.params.fecha_hasta])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+}
+
+exports.estadisticasVentasDiariasEmpleado = function (req, res) {
+    querySrv.getQueryResults(qVentas.estadisticasVentasDiariasEmpleado, [req.params.fecha_desde, req.params.fecha_hasta, req.params.empleados_id])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+}
+
 /* ---------------------------POST---------------------------- */
 exports.insertVentaReturningFactura = function (req, res) {
     const clientes_id = req.body.cliente.clientes_id;
