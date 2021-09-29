@@ -71,7 +71,7 @@ exports.getCantidadPaginasCategoriasTxt = function (req, res) {
 }
 
 exports.getCategorias = function (req, res) {
-    querySrv.getQueryResults(getCategorias, [req.params.paginaActual, req.params.cantidadPaginas])
+    querySrv.getQueryResults(qCategorias.getCategorias, [req.params.paginaActual, req.params.cantidadPaginas])
     .then(response => res.send(response.value))
     .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
 }
@@ -121,6 +121,14 @@ exports.getCategoriasTxt = function (req, res) {
 }
 //<------------------PAGINACION FIN
 
+exports.getDatosCategorias = function (req, res) {
+    querySrv.getQueryResults(qCategorias.getDatosCategorias, [req.params.categorias_id])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));  
+}
+
+
+
 
 /* ---------------------------POST---------------------------- */
 
@@ -132,4 +140,17 @@ exports.insert = function (req, res) {
     querySrv.getQueryResults(qCategorias.insert, [nombre, descripcion, categorias_id_padre])
     .then(response => res.send({ "mensaje": "La categoria se cargo exitosamente", "id": response.value[0] }))
     .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+}
+
+/* ---------------------------PUT---------------------------- */
+
+exports.update = function (req, res) {
+    const id_categoria = (req.body.id != undefined) ? req.body.id : `null`;
+    const nombre = (req.body.nombre != undefined) ? req.body.nombre : `null`;
+    const descripcion = (req.body.descripcion != undefined) ? req.body.descripcion : `null`;
+    const categorias_id_padre = (req.body.categorias_padre_id != undefined) ? req.body.categorias_padre_id : `null`;
+
+    querySrv.getQueryResults(qCategorias.update, [id_categoria, nombre, descripcion, categorias_id_padre])
+    .then(response => res.send({ "mensaje": "La categoria se ha actualizado exitosamente", "id": response.value[0] }))
+    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido un Error ${err}` })));
 }

@@ -41,6 +41,16 @@ OFFSET (5* ((CASE
 LIMIT 5
 `;
 
+
+exports.getDatosCategorias = `
+SELECT 
+    * 
+FROM roma.categorias
+WHERE 
+    id = $1
+`;
+
+
 exports.insert = `
 INSERT INTO roma.categorias(nombre, descripcion, categorias_id_padre)
 VALUES($1, $2, $3) RETURNING id;
@@ -48,5 +58,5 @@ VALUES($1, $2, $3) RETURNING id;
 
 exports.update = `
 UPDATE roma.categorias SET nombre = $2, descripcion = $3, categorias_id_padre = $4
-WHERE id = $1;
+WHERE id = $1 RETURNING id;
 `;

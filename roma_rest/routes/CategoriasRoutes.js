@@ -14,13 +14,19 @@ router.route('/getCantidadPaginasCategorias/:busca_nombre/:busca_descripcion/:bu
 router.route('/getCategorias/:paginaActual/:cantidadPaginas/:busca_nombre/:busca_descripcion/:busca_catpadre').get(middleware.checkToken, Ctrl.getCategorias);
 router.route('/getCategorias/:paginaActual/:cantidadPaginas/:busca_nombre/:busca_descripcion/:busca_catpadre/:txt').get(middleware.checkToken, Ctrl.getCategoriasTxt);
 //------> Paginación Fin
+router.route('/getDatosCategorias/:categorias_id').get(middleware.checkToken, Ctrl.getDatosCategorias);
 
 //POST
 router.route('/categorias/insert/').post(middleware.checkToken, Ctrl.insert);
 
 
 //PUT
+router.route('/categorias/update/').put(middleware.checkToken, Ctrl.update);
 
 
 //DELETE
+
+
+
+
 module.exports = router;
