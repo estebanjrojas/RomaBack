@@ -146,7 +146,11 @@ exports.getPerfilesSinAsignar = function (req, res) {
    
 }
 
-
+exports.getPerfilesCodificadosUsuario = function (req, res) {
+    querySrv.getQueryResults(qUsuarios.getPerfilesCodificadosUsuario, [req.params.usuario])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+}
 
 //-----------> PAGINACION INICIO :
 exports.getCantidadPaginasUsuarios = function (req, res) {
