@@ -127,3 +127,11 @@ exports.deletePerfiles = `
 DELETE FROM seguridad.usuarios_perfiles 
 WHERE usuarios_id = $1;
 `;
+
+exports.getPerfilesCodificadosUsuario = `
+SELECT ENCODE(digest(LOWER(prf.nombre),'sha256'),'hex') as perfiles
+FROM seguridad.perfiles prf
+JOIN seguridad.usuarios_perfiles upf ON prf.id = upf.perfiles_id
+JOIN seguridad.usuarios usr ON upf.usuarios_id = usr.id
+WHERE usr.nomb_usr = $1
+`;
