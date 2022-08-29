@@ -11,12 +11,13 @@ const executeQuery = (query, paramsArray, callback) => {
         pool.connect((poolErr, client, release) => {
             if (poolErr) { throw poolErr; } 
             client.query(query, paramsArray, (queryErr, resp) => {
+                console.log({'resp': resp.rows});
                 release();
                 if (queryErr) {throw queryErr;}
                 response = {
-                    status: resp.rows.length >0 ? 200: 400,
+                    status: resp.rowCount >0 ? 200: 400,
                     value: resp.rows,
-                    desc: resp.rows.length >0 ? `Exito` : `Sin resultados`
+                    desc: resp.rowCount >0 ? `Exito` : `Sin resultados`
                 }
                 callback(response);
             });
@@ -27,8 +28,10 @@ const executeQuery = (query, paramsArray, callback) => {
 }
 
 function getQueryResults(query, paramsArray) {
+    console.log({'query': query, "params": paramsArray});
     return new Promise( (resolve, reject) =>{
         executeQuery(query, paramsArray, (queryResult)=> {
+            console.log({'queryResult': queryResult});
             if(queryResult.status===200) {
                 resolve(queryResult);
             } else {

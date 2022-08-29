@@ -29,7 +29,7 @@ INSERT INTO personas(
 VALUES(
     $1, $2, $3, $4, 
     $5, $6, $7, $8, 
-    $9, $10, now()
+    $9, $10, now(),
     $11, now(), $11, 
     now(), $12)
 RETURNING id;`;
@@ -52,7 +52,8 @@ SET
     usuario = $11, 
     fecha_mov = now(), 
     domicilios_id = $13
-WHERE id = $12`;
+WHERE id = $12
+RETURNING id`;
 
 //DELETE
 

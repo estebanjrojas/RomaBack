@@ -254,8 +254,8 @@ exports.insertVentaReturningFactura = function (req, res) {
                         return;
                     }
                     ventas_id = res_vta.rows[0].id;
-                    for (let i = 0; i < detalles.length; i++) {
-                        client.query(qVentas.insertDetalleReturnId, [detalles[i].cantidad, detalles[i].producto.precio_actual, detalles[i].descuento, detalles[i].subtotal, ventas_id, detalles[i].producto.productos_id], (err_dvta, res_dvta) => {
+                    for (let i = 0; i < req.body.detalles.length; i++) {
+                        client.query(qVentas.insertDetalleReturnId, [req.body.detalles[i].cantidad, req.body.detalles[i].producto.precio_actual, req.body.detalles[i].descuento, req.body.detalles[i].subtotal, req.body.ventas_id, req.body.detalles[i].producto.productos_id], (err_dvta, res_dvta) => {
                             if (err_dvta) {
                                 console.error('Ocurrio un error cargar el detalle de la venta: ' + err_dvta.stack);
                             }
