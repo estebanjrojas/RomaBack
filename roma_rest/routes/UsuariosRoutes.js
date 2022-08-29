@@ -13,6 +13,7 @@ router.route('/getUsuariosBusqueda/:texto_busqueda').get(middleware.checkToken, 
 router.route('/getDatosUsuariosCargados/:id').get(middleware.checkToken, Ctrl.getDatosUsuariosCargados);
 router.route('/getPerfilesAsignados/:id').get(middleware.checkToken, Ctrl.getPerfilesAsignados);
 router.route('/getPerfilesSinAsignar/:id').get(middleware.checkToken, Ctrl.getPerfilesSinAsignar);
+router.route('/getPerfilesCodificadosUsuario/:usuario').get(middleware.checkToken, Ctrl.getPerfilesCodificadosUsuario);
 //------> Paginación Inicio
 router.route('/getCantidadPaginasUsuarios/:busca_nombre/:busca_usuario/:busca_descripcion').get(middleware.checkToken, Ctrl.getCantidadPaginasUsuarios);
 router.route('/getCantidadPaginasUsuarios/:busca_nombre/:busca_usuario/:busca_descripcion/:txt').get(middleware.checkToken, Ctrl.getCantidadPaginasUsuariosTxt);

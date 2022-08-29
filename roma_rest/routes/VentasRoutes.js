@@ -19,6 +19,7 @@ router.route('/ultimasVentas/').get(middleware.checkToken, Ctrl.getUltimasVentas
 router.route('/ultimasVentasEmpleado/:empleados_id').get(middleware.checkToken, Ctrl.getUltimasVentasEmpleado);
 router.route('/estadisticasVentasDiarias/:fecha_desde/:fecha_hasta').get(middleware.checkToken, Ctrl.estadisticasVentasDiarias);
 router.route('/estadisticasVentasDiariasEmpleado/:fecha_desde/:fecha_hasta/:empleados_id').get(middleware.checkToken, Ctrl.estadisticasVentasDiariasEmpleado);
+router.route('/estadisticasVentasMensuales/:fecha_desde/:fecha_hasta').get(middleware.checkToken, Ctrl.estadisticasVentasMensuales);
 
 //POST
 router.route('/insertVentaReturningFactura/').post(middleware.checkToken, Ctrl.insertVentaReturningFactura);

@@ -8,69 +8,69 @@ const qProductos = require("./query/Productos.js");
 
 exports.getProductosTodos = function (req, res) {
     querySrv.getQueryResults(qProductos.getProductosTodos, [])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.getProductosBusqueda = function (req, res) {
     querySrv.getQueryResults(qProductos.getProductosBusqueda, [req.params.texto_busqueda])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.getDatosProductos = function (req, res) {
     querySrv.getQueryResults(qProductos.getDatosProductos, [req.params.id])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.getCaracteristicasProductos = function (req, res) {
     querySrv.getQueryResults(qProductos.getCaracteristicasProductos, [req.params.id])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.getCategoriasProductos = function (req, res) {
     querySrv.getQueryResults(qProductos.getCategoriasProductos, [req.params.id])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.getUltimoPrecioValido = function (req, res) {
     querySrv.getQueryResults(qProductos.getUltimoPrecioValido, [req.params.id])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.getHistorialPrecios = function (req, res) {
     querySrv.getQueryResults(qProductos.getHistorialPrecios, [req.params.id])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.getImagenesProductos = function (req, res) {
     querySrv.getQueryResults(qProductos.getImagenesProductos, [req.params.id])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.getProductosPorCategoriaCampoBusqueda = function (req, res) {
     querySrv.getQueryResults(qProductos.getProductosPorCategoriaCampoBusqueda, [req.params.categorias_id, req.params.campo_buscar, req.params.texto_buscar])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.getFotosCargadas = function (req, res) {
     querySrv.getQueryResults(qProductos.getFotosCargadas, [req.params.id])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 //-----------> PAGINACION INICIO :
 exports.getCantidadPaginasProductos = function (req, res) {
     querySrv.getQueryResults(qProductos.getCantidadPaginasProductos, [])
-    .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 };
 
 exports.getCantidadPaginasProductosTxt = function (req, res) {
@@ -129,15 +129,15 @@ exports.getCantidadPaginasProductosTxt = function (req, res) {
     )x `;
 
     querySrv.getQueryResults(query, [])
-    .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 
 }
 
 exports.getProductos = function (req, res) {
     querySrv.getQueryResults(qProductos.getProductos, [req.params.paginaActual, req.params.cantidadPaginas])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.getProductosTxt = function (req, res) {
@@ -196,18 +196,30 @@ exports.getProductosTxt = function (req, res) {
         WHEN ${req.params.paginaActual} <1 THEN 1 
         ELSE ${req.params.paginaActual} END)-1))
     LIMIT 5 `;
-    
+
     querySrv.getQueryResults(query, [])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 //<------------------PAGINACION FIN
 
 
 exports.getNovedadesProductosLimit = async function (req, res) {
     querySrv.getQueryResults(qProductos.getNovedadesProductosLimit, [req.params.fecha_desde, req.params.fecha_hasta, req.params.limit])
-    .then(response => res.send(response.value))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send(response.value))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
+}
+
+exports.verificarProductoPoseeCaracteristicas = async function (req, res) {
+    querySrv.getQueryResults(qProductos.verificarProductoPoseeCaracteristicas, [req.params.productos_id])
+        .then(response => res.send(response.value))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
+}
+
+exports.verificarProductoPoseeImagenes = async function (req, res) {
+    querySrv.getQueryResults(qProductos.verificarProductoPoseeImagenes, [req.params.productos_id])
+        .then(response => res.send(response.value))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 //------------------------------POST------------------------------//
 
@@ -249,26 +261,26 @@ exports.insertProductoReturnId = function (req, res) {
 
 exports.insertNuevoPrecioProducto = function (req, res) {
     querySrv.getQueryResults(qProductos.insertNuevoPrecioProducto, [req.body.precio, req.body.productos_id])
-    .then(response => res.send({ "mensaje": "El Precio se cargo exitosamente" }))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send({ "mensaje": "El Precio se cargo exitosamente" }))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.insertCaracteristicasProducto = function (req, res) {
     querySrv.getQueryResults(qProductos.insertCaracteristicasProducto, [req.body.nombre, req.body.descripcion, req.body.valor, req.body.productos_id])
-    .then(response => res.send({ "mensaje": "Las Caracteristicas se cargaron exitosamente" }))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send({ "mensaje": "Las Caracteristicas se cargaron exitosamente" }))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.eliminarCategoriasProductos = function (req, res) {
     querySrv.getQueryResults(qProductos.eliminarCategoriasProductos, [req.params.productos_id])
-    .then(response => res.send({ "mensaje": "La Categoria se elimino exitosamente" }))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send({ "mensaje": "La Categoria se elimino exitosamente" }))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.insertCategoriasProducto = function (req, res) {
     querySrv.getQueryResults(qProductos.insertCategoriasProducto, [req.body.productos_id, req.body.categorias_id])
-    .then(response => res.send({ "mensaje": "La Categoria y producto se relaciono exitosamente" }))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send({ "mensaje": "La Categoria y producto se relaciono exitosamente" }))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.insertEmpleadoPersonaDomicilio = function (req, res) {
@@ -458,8 +470,8 @@ exports.actualizarDatosProductos = function (req, res) {
 
 exports.actualizarFechaHastaPrecio = function (req, res) {
     querySrv.getQueryResults(qProductos.actualizarFechaHastaPrecio, [req.body.productos_id])
-    .then(response => res.send({ "mensaje": "La fecha de cese fue actualizada exitosamente" }))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send({ "mensaje": "La fecha de cese fue actualizada exitosamente" }))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 
@@ -467,15 +479,22 @@ exports.actualizarFechaHastaPrecio = function (req, res) {
 
 exports.eliminarCaracteristicasProductos = function (req, res) {
     querySrv.getQueryResults(qProductos.eliminarCaracteristicasProductos, [req.params.productos_id])
-    .then(response => res.send({ "mensaje": "Las caracteristicas del producto se eliminaron exitosamente" }))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send({ "mensaje": "Las caracteristicas del producto se eliminaron exitosamente" }))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido un Error ${err}` })));
 }
 
 
 exports.eliminarImagenesProductos = function (req, res) {
     querySrv.getQueryResults(qProductos.eliminarImagenesProductos, [req.params.productos_id])
-    .then(response => res.send({ "mensaje": "Las imagenes del producto se eliminaron exitosamente" }))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send({ "mensaje": "Las imagenes del producto se eliminaron exitosamente" }))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido un Error ${err}` })));
+}
+
+
+exports.eliminarProductoById = function (req, res) {
+    querySrv.getQueryResults(qProductos.eliminarProductoById, [req.params.productos_id])
+        .then(response => res.send({ "mensaje": "Las producto se elimino exitosamente" }))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido un Error ${err}` })));
 }
 
 

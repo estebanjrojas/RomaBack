@@ -170,7 +170,17 @@ from roma.get_estadisticas_ventas_diarias($1::date, $2::date);`;
 
 exports.estadisticasVentasDiariasEmpleado = `
 select * 
-from roma.get_estadisticas_ventas_diarias($1::date, $2::date, $3::bigint);`;
+from roma.get_estadisticas_ventas_diarias_empleado($1::date, $2::date, $3::bigint);`;
+
+exports.estadisticasVentasMensuales = `
+select EXTRACT('year' from _fecha)::varchar
+	||get_string_parceados(EXTRACT('month' from _fecha)::varchar, 2, '0', 1) as periodo
+	, SUM(_cantidad_articulos_vendidos) as cantidad_articulos_vendidos
+	, SUM(_monto_total_vendido) as monto_total_vendido
+from roma.get_estadisticas_ventas_diarias($1::date, ultimo_fecha_mes($2::date))
+GROUP BY periodo
+ORDER BY periodo;
+`;
 
 exports.insertReturnId = `
 INSERT INTO roma.ventas(fecha, monto_total, empresas_id, empleados_id, clientes_id)

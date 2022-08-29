@@ -126,6 +126,28 @@ OFFSET (5* ((CASE
     ELSE $1::integer END) -1))
 LIMIT 5`;
 
+exports.getNovedadesProductosLimit = `
+SELECT * 
+FROM roma.get_novedades_productos($1, $2)
+ORDER BY _fecha desc, _tipo, _descripcion
+LIMIT $3;
+`;
+
+exports.verificarProductoPoseeCaracteristicas = `
+SELECT count(id)>0 as respuesta
+FROM roma.productos_caracteristicas
+WHERE
+    productos_id = $1
+`;
+
+exports.verificarProductoPoseeImagenes = `
+SELECT count(id)>0 as respuesta
+FROM roma.productos_imagenes
+WHERE
+    productos_id = $1
+`;
+
+
 exports.insertProductosReturningId = `
 INSERT INTO roma.productos (codigo, nombre, descripcion, descripcion_factura, tipo_producto, fecha_desde)
 VALUES($1, $2, $3, $4, $5, now()::date) RETURNING id; 
@@ -135,14 +157,6 @@ exports.insertPreciosProductos = `
 INSERT INTO roma.precios_productos(monto, unidad, fecha_desde, productos_id)
 VALUES($1, $2, now(), $3)
 `;
-
-exports.getNovedadesProductosLimit = `
-SELECT * 
-FROM roma.get_novedades_productos($1, $2)
-ORDER BY _fecha desc, _tipo, _descripcion
-LIMIT $3;
-`;
-
 exports.insertNuevoPrecioProducto = `
 INSERT INTO roma.precios_productos(monto, fecha_desde, productos_id)
 VALUES($1, now()::date + INTERVAL '1 DAY', $2);
@@ -167,8 +181,12 @@ exports.actualizarFechaHastaPrecio = `
 UPDATE roma.precios_productos SET fecha_hasta= now()::date WHERE productos_id = $1;`;
 
 exports.eliminarCaracteristicasProductos = `
-DELETE FROM roma.productos_caracteristicas WHERE productos_id = $1;
+DELETE FROM roma.productos_caracteristicas WHERE productos_id = $1 RETURNING 1;
 `;
 
 exports.eliminarImagenesProductos = `
-DELETE FROM roma.productos_imagenes WHERE productos_id = $1`;
+DELETE FROM roma.productos_imagenes WHERE productos_id = $1 RETURNING 1`;
+
+exports.eliminarProductoById = `
+DELETE FROM roma.productos WHERE id = $1 RETURNING 1`
+;

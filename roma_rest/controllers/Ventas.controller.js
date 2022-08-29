@@ -234,6 +234,12 @@ exports.estadisticasVentasDiariasEmpleado = function (req, res) {
     .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
 
+exports.estadisticasVentasMensuales = function (req, res) {
+    querySrv.getQueryResults(qVentas.estadisticasVentasMensuales, [req.params.fecha_desde, req.params.fecha_hasta])
+    .then(response => res.send(JSON.stringify(response.value)))
+    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+}
+
 /* ---------------------------POST---------------------------- */
 exports.insertVentaReturningFactura = function (req, res) {
     const clientes_id = req.body.cliente.clientes_id;
