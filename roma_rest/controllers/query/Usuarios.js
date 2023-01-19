@@ -69,7 +69,7 @@ SELECT em.id as empleados_id
     , em.legajo
     , em.fecha_ingreso
     , em.descripcion
-    , gdt(3, em.oficina) as oficina
+    , ofc.descripcion as oficina
     , ep.id as empresas_id
     , ep.razon_social as empresa_razon_social
     , ep.nombre_fantasia as empresa_nombre_fantasia
@@ -78,6 +78,7 @@ SELECT em.id as empleados_id
     , usr.nomb_usr
     , usr.id as usuario_id
 FROM roma.empleados em
+JOIN roma.oficinas ofc ON em.oficina = ofc.id
 JOIN personas ps ON em.personas_id = ps.id
 JOIN roma.empresas ep ON em.empresas_id = ep.id
 JOIN seguridad.usuarios usr ON ps.id = usr.personas_id          
@@ -123,7 +124,7 @@ FROM (
 )x
 `;
 
-exports.deletePerfiles = `
+exports.deletePerfilesDelUsuario = `
 DELETE FROM seguridad.usuarios_perfiles 
 WHERE usuarios_id = $1;
 `;

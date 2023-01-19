@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-var swaggerUi = require('swagger-ui-express'),
+const swaggerUi = require('swagger-ui-express'),
     swaggerDocument = require('./swagger.json');
 const override = require('method-override');
 const configuracion = require("./utillities/config");
@@ -26,23 +26,23 @@ router.get('/getClientIP', function (req, res) {
 router.use('/', swaggerUi.serve);
 router.get('/', swaggerUi.setup(swaggerDocument));
 
-var Tabgral_routes = require('./routes/TabgralRoutes');
-var Usuarios_routes = require('./routes/UsuariosRoutes');
-var Personas_routes = require('./routes/PersonasRoutes');
-var Empleados_routes = require('./routes/EmpleadosRoutes');
-var Productos_routes = require('./routes/ProductosRoutes');
-var Clientes_routes = require('./routes/ClientesRoutes');
-var FacturaElectronica_routes = require('./routes/FacturaElectronicaRoutes');
-var Provincias_routes = require('./routes/ProvinciasRouter');
-var Ciudades_routes = require('./routes/CiudadesRoutes');
-var Domicilios_routes = require('./routes/DomiciliosRoutes');
-var Categorias_routes = require('./routes/CategoriasRoutes');
-var PuntosVenta_routes = require('./routes/PuntosVentaRoutes');
-var Ventas_routes = require('./routes/VentasRoutes');
-var FacturasImpresion_routes = require('./routes/FacturasImpresionRoutes');
-var Menu_routes = require('./routes/MenuRoutes');
+
+const Usuarios_routes = require('./routes/UsuariosRoutes');
+const Personas_routes = require('./routes/PersonasRoutes');
+const Empleados_routes = require('./routes/EmpleadosRoutes');
+const Productos_routes = require('./routes/ProductosRoutes');
+const Clientes_routes = require('./routes/ClientesRoutes');
+const FacturaElectronica_routes = require('./routes/FacturaElectronicaRoutes');
+const Provincias_routes = require('./routes/ProvinciasRouter');
+const Ciudades_routes = require('./routes/CiudadesRoutes');
+const Domicilios_routes = require('./routes/DomiciliosRoutes');
+const Categorias_routes = require('./routes/CategoriasRoutes');
+const PuntosVenta_routes = require('./routes/PuntosVentaRoutes');
+const Ventas_routes = require('./routes/VentasRoutes');
+const FacturasImpresion_routes = require('./routes/FacturasImpresionRoutes');
+const Menu_routes = require('./routes/MenuRoutes');
 //app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-app.use('', Tabgral_routes);
+
 app.use('', Usuarios_routes);
 app.use('', Personas_routes);
 app.use('', Empleados_routes);

@@ -5,12 +5,13 @@ SELECT em.id as empleados_id
     , em.legajo
     , em.fecha_ingreso
     , em.descripcion
-    , gdt(3, em.oficina) as oficina
+    , ofc.descripcion as oficina
     , ep.id as empresas_id
     , ep.razon_social as empresa_razon_social
     , ep.nombre_fantasia as empresa_nombre_fantasia
     , ps.*
 FROM roma.empleados em
+JOIN roma.oficinas ofc ON em.oficina = ofc.id
 JOIN personas ps ON em.personas_id = ps.id
 JOIN roma.empresas ep ON em.empresas_id = ep.id`;
 
@@ -20,18 +21,19 @@ SELECT em.id as empleados_id
     , em.legajo
     , em.fecha_ingreso
     , em.descripcion
-    , gdt(3, em.oficina) as oficina
+    , ofc.descripcion as oficina
     , ep.id as empresas_id
     , ep.razon_social as empresa_razon_social
     , ep.nombre_fantasia as empresa_nombre_fantasia
     , ps.*
 FROM roma.empleados em
+JOIN roma.oficinas ofc ON em.oficina = ofc.id
 JOIN personas ps ON em.personas_id = ps.id
 JOIN roma.empresas ep ON em.empresas_id = ep.id
 WHERE (ps.nro_doc::varchar ilike '%' || $1 || '%'
         OR ps.apellido ilike '%' || $1 || '%'
         OR ps.nombre ilike '%' || $1 || '%'
-        OR gdt(3, em.oficina) ilike '%' || $1 || '%');`;
+        OR ofc.descripcion ilike '%' || $1 || '%');`;
 
 
 exports.getEmpleadoPorNroDoc = `
@@ -40,13 +42,14 @@ SELECT em.id as empleados_id
             , em.legajo
             , em.fecha_ingreso
             , em.descripcion
-            , gdt(3, em.oficina) as oficina
+            , ofc.descripcion as oficina
             , em.oficina as oficinas_id
             , ep.id as empresas_id
             , ep.razon_social as empresa_razon_social
             , ep.nombre_fantasia as empresa_nombre_fantasia
             , ps.*
 FROM roma.empleados em
+JOIN roma.oficinas ofc ON em.oficina = ofc.id
 JOIN personas ps ON em.personas_id = ps.id
 JOIN roma.empresas ep ON em.empresas_id = ep.id
 WHERE tipo_doc = $1 AND nro_doc = $2`;
@@ -57,7 +60,7 @@ SELECT em.id as empleados_id
     , em.legajo
     , em.fecha_ingreso
     , em.descripcion
-    , gdt(3, em.oficina) as oficina
+    , ofc.descripcion as oficina
     , em.oficina as oficinas_id
     , ep.id as empresas_id
     , ep.razon_social as empresa_razon_social
@@ -80,6 +83,7 @@ SELECT em.id as empleados_id
     , pai.id as domicilio_paises_id
     , pai.nombre as domicilio_pais
 FROM roma.empleados em
+JOIN roma.oficinas ofc ON em.oficina = ofc.id
 JOIN personas ps ON em.personas_id = ps.id
 JOIN roma.empresas ep ON em.empresas_id = ep.id
 LEFT JOIN domicilios dom ON ps.domicilios_id = dom.id
@@ -96,7 +100,7 @@ SELECT em.id as empleados_id
     , em.legajo
     , em.fecha_ingreso
     , em.descripcion
-    , gdt(3, em.oficina) as oficina
+    , ofc.descripcion as oficina
     , ep.id as empresas_id
     , ep.razon_social as empresa_razon_social
     , ep.nombre_fantasia as empresa_nombre_fantasia
@@ -104,6 +108,7 @@ SELECT em.id as empleados_id
     , usr.nomb_usr
     , ps.nombre || ' ' || ps.apellido as nombre_completo
 FROM roma.empleados em
+JOIN roma.oficinas ofc ON em.oficina = ofc.id
 JOIN personas ps ON em.personas_id = ps.id
 JOIN roma.empresas ep ON em.empresas_id = ep.id
 LEFT JOIN seguridad.usuarios usr ON ps.id = usr.personas_id
@@ -120,12 +125,13 @@ FROM (
         , em.legajo
         , em.fecha_ingreso
         , em.descripcion
-        , gdt(3, em.oficina) as oficina
+        , ofc.descripcion as oficina
         , ep.id as empresas_id
         , ep.razon_social as empresa_razon_social
         , ep.nombre_fantasia as empresa_nombre_fantasia
         , ps.*
     FROM roma.empleados em
+    JOIN roma.oficinas ofc ON em.oficina = ofc.id
     JOIN personas ps ON em.personas_id = ps.id
     JOIN roma.empresas ep ON em.empresas_id = ep.id
 )x
@@ -138,7 +144,7 @@ SELECT
     , em.legajo
     , em.fecha_ingreso
     , em.descripcion
-    , tab.descrip as oficina
+    , of.descripcion as oficina
     , ep.id as empresas_id
     , ep.razon_social as empresa_razon_social
     , ep.nombre_fantasia as empresa_nombre_fantasia
@@ -146,7 +152,7 @@ SELECT
 FROM roma.empleados em
 JOIN personas ps ON em.personas_id = ps.id
 JOIN roma.empresas ep ON em.empresas_id = ep.id
-JOIN tabgral tab ON em.oficina = tab.codigo AND tab.nro_tab = 3
+JOIN roma.oficinas of ON em.oficina = of.id
 ORDER BY ps.apellido, ps.nombre
 OFFSET (5* ((CASE 
     WHEN $1::integer > $1::integer THEN $2::integer

@@ -19,13 +19,14 @@ exports.getDatosFacturaImpresion = `
          , fac.monto_total, fac.monto_neto, fac.monto_iva
          , to_char(fac.fecha_emision::date, 'dd/mm/YYYY') as fecha_emision
          , fac.punto_venta_factura, fac.numero_factura
-         , gdt(5, fac.tipo_factura) as tipo_factura
+         , tcm.descripcion as tipo_factura
          , prs.nro_doc as documento_cliente, prs.tipo_doc as tipo_documento_cliente
          , prs.apellido as apellido_cliente, prs.nombre as nombre_cliente
          , prs.telefono as telefono_cliente, prs.telefono_cel as cel_cliente, prs.email as email_cliente
          , emp.razon_social, emp.nombre_fantasia, emp.telefono as telefono_empresa, emp.email as email_empresa
          , pfi.cuit as cuit_empresa
     FROM roma.facturas fac
+    JOIN roma.tipos_comprobantes tcm ON fac.tipo_factura = tcm.id
     JOIN roma.ventas vta ON fac.ventas_id = vta.id
     JOIN roma.empresas emp ON vta.empresas_id = emp.id
     JOIN roma.parametros_fiscales pfi ON emp.id = pfi.empresas_id AND now()::date between pfi.fecha_desde and coalesce(pfi.fecha_hasta, now()::date)

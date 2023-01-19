@@ -1,18 +1,22 @@
 exports.getPuntosVentaTodos = `
 SELECT pv.*
-    , tab.descrip as sucursal_descrip
+    , suc.nombre as sucursal_descrip
 FROM roma.puntos_venta pv
-JOIN tabgral tab ON pv.sucursal = tab.codigo AND tab.nro_tab = 6
+JOIN roma.sucursales suc ON pv.sucursal = suc.id 
+WHERE suc.fecha_inicio >= now()::date
+AND coalesce(suc.fecha_cierre, now()::date) <= now()::date
 `;
 
 exports.getPuntosVentaBusqueda = `
 SELECT pv.*
-    , tab.descrip as sucursal_descrip
+    , suc.nombre as sucursal_descrip
 FROM roma.puntos_venta pv
-JOIN tabgral tab ON pv.sucursal = tab.codigo AND tab.nro_tab = 6
+JOIN roma.sucursales suc ON pv.sucursal = suc.id 
 WHERE (tab.descrip ilike '%||$1||%'
     OR tab.codigo::varchar '$||$1||%'
     OR pv.numero::varchar ilike '%||$1||%')
+    AND suc.fecha_inicio >= now()::date
+    AND coalesce(suc.fecha_cierre, now()::date) <= now()::date
 `;
 
 exports.getDatosPuntosVenta = `
@@ -22,8 +26,9 @@ WHERE pv.id = $1
 `;
 
 exports.getCaracteristicasPuntosVenta = `
-SELECT *, gdt(5, tipo_comprobante) as descripcion 
-FROM roma.puntos_venta_tipo_comprobantes             
+SELECT *, tcm.descripcion as descripcion 
+FROM roma.puntos_venta_tipo_comprobantes pvtc
+JOIN roma.tipos_comprobantes tcm ON pvtc.tipo_comprobante = tcm.id            
 WHERE puntos_venta_id = $1
 `;
 

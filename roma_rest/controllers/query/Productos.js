@@ -69,12 +69,13 @@ ORDER BY orden DESC;
 exports.getProductosPorCategoriaCampoBusqueda = `
 SELECT prod.id as productos_id
         , prod.codigo, prod.nombre, prod.descripcion, prod.descripcion_factura
-        , prod.tipo_producto, gdt(7, prod.tipo_producto) as tipo_producto_descrip
+        , prod.tipo_producto, tp.descripcion as tipo_producto_descrip
         , prod.fecha_desde, prod.fecha_hasta
         , roma.get_imagen_principal_producto(prod.id) as imagen_principal
         , ppre.monto as precio
         , ppre.unidad as moneda
 FROM roma.productos prod
+JOIN roma.tipos_productos tp ON prod.tipo_producto = tp.id
 LEFT JOIN roma.productos_categorias pcat ON prod.id = pcat.productos_id
 LEFT JOIN roma.precios_productos ppre ON prod.id = ppre.productos_id AND now()::date between ppre.fecha_desde and coalesce(ppre.fecha_hasta, now())::date
 WHERE (pcat.categorias_id = $1 OR $1 = 0)

@@ -62,7 +62,7 @@ SELECT v.id as ventas_id
     , fac.id is not null as facturada
 	, (fac.cae is not null OR fac.cai is not null) as aprobada
 	, fac.id as facturas_id
-	, gdt(5, fac.tipo_factura) as tipo_factura
+	, tcm.descripcion as tipo_factura
 	, fac.punto_venta_factura
 	, fac.numero_factura
 	, fac.fecha_emision as fecha_emision_factura
@@ -79,6 +79,7 @@ JOIN personas per ON cli.personas_id = per.id
 JOIN roma.empleados emp ON v.empleados_id = emp.id
 JOIN personas per2 ON emp.personas_id = per2.id
 LEFT JOIN roma.facturas fac ON v.id = fac.ventas_id
+LEFT JOIN roma.tipos_comprobantes tcm ON fac.tipo_factura = tcm.id
 WHERE v.id = $1
 ORDER BY fecha desc, v.id;
 `;
@@ -88,9 +89,10 @@ exports.getDetalleVentaPorVentasId = `
 SELECT vd.id as ventas_detalle_id, vd.cantidad
     , vd.monto as monto_unidad, vd.subtotal
 	, pr.codigo, pr.nombre, pr.descripcion, pr.descripcion_factura
-	, gdt(7, pr.tipo_producto) as tipo_producto
+	, tp.descripcion as tipo_producto
 FROM roma.ventas_detalle vd
 JOIN roma.productos pr ON vd.productos_id = pr.id
+JOIN roma.tipos_productos tp ON pr.tipo_producto = tp.id
 WHERE vd.ventas_id = $1;
 `;
 

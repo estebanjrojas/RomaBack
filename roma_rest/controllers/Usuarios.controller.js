@@ -309,8 +309,8 @@ exports.actualizarDatosUsuarios = function (req, res) {
 
 
 exports.deletePerfiles = function (req, res) {
-    querySrv.getQueryResults(qUsuarios.deletePerfiles, [req.params.id_usuario])
-    .then(response => res.send({ "mensaje": "El Perfil fue eliminado exitosamente"}))
+    querySrv.getQueryResults(qUsuarios.deletePerfilesDelUsuario, [req.params.id_usuario])
+    .then(() => res.send({ "mensaje": "El Perfil fue eliminado exitosamente"}))
     .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
 

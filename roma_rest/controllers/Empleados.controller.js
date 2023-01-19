@@ -89,7 +89,7 @@ exports.getCantidadPaginasEmpleadosTxt = function (req, res) {
             , em.legajo
             , em.fecha_ingreso
             , em.descripcion
-            , tab.descrip as oficina
+            , of.descripcion as oficina
             , ep.id as empresas_id
             , ep.razon_social as empresa_razon_social
             , ep.nombre_fantasia as empresa_nombre_fantasia
@@ -97,7 +97,7 @@ exports.getCantidadPaginasEmpleadosTxt = function (req, res) {
         FROM roma.empleados em
         JOIN personas ps ON em.personas_id = ps.id
         JOIN roma.empresas ep ON em.empresas_id = ep.id
-        JOIN tabgral tab ON em.oficina = tab.codigo AND tab.nro_tab = 3
+        JOIN roma.oficinas of ON em.oficina = of.id
         ${parametrosBusqueda}
     )x `;
 
@@ -154,7 +154,7 @@ exports.getEmpleadosTxt = function (req, res) {
         , em.legajo
         , em.fecha_ingreso
         , em.descripcion
-        , tab.descrip as oficina
+        , of.descripcion as oficina
         , ep.id as empresas_id
         , ep.razon_social as empresa_razon_social
         , ep.nombre_fantasia as empresa_nombre_fantasia
@@ -162,7 +162,7 @@ exports.getEmpleadosTxt = function (req, res) {
     FROM roma.empleados em
     JOIN personas ps ON em.personas_id = ps.id
     JOIN roma.empresas ep ON em.empresas_id = ep.id
-    JOIN tabgral tab ON em.oficina = tab.codigo AND tab.nro_tab = 3
+    JOIN roma.oficinas of ON em.oficina = of.id
     ${parametrosBusqueda}
     ORDER BY ps.apellido, ps.nombre
     OFFSET (5* ((CASE 
