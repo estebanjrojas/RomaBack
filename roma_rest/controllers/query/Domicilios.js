@@ -17,7 +17,8 @@ SET
     depto = $4, 
     manzana = $5, 
     ciudades_id = $6
-WHERE id = $7`;
+WHERE id = $7
+RETURNING id`;
 
 exports.getDomicilioPersonaByNroDoc = `
 SELECT * 

@@ -69,6 +69,7 @@ exports.getClientes = `
 SELECT cli.id as clientes_id, cli.fecha_alta, p.id as personas_id, p.* 
 FROM roma.clientes cli
 JOIN personas p ON cli.personas_id = p.id 
+ORDER BY p.apellido, p.nombre
 OFFSET (20* ((CASE 
 	WHEN $1::integer > $2::integer THEN $2::integer
 	WHEN $1::integer <1 THEN 1 
@@ -79,9 +80,11 @@ LIMIT 20
 //POST
 
 exports.insertClienteReturnId = `
-INSERT INTO roma.clientes(
-	fecha_alta, personas_id)
-	VALUES (now(), $1);
+INSERT INTO roma.clientes
+	(fecha_alta, personas_id)
+VALUES 
+	(now(), $1)
+RETURNING id;
 `
 
 
@@ -92,7 +95,8 @@ INSERT INTO roma.clientes(
 exports.updateClientesDomicilios = `
 UPDATE roma.clientes
 SET personas_id=$1
-WHERE id = $2;
+WHERE id = $2
+RETURNING id;
 `
 
 
