@@ -54,8 +54,8 @@ WHERE (p.nombre::varchar ilike '%' || $1 || '%'
 `;
 
 exports.insertUsuarioReturnId = `
-INSERT INTO seguridad.usuarios (nomb_usr, pwd_usr, usuario, fecha_mov, debug, personas_id)
-VALUES($1, ENCODE(digest(LOWER($1::varchar),'sha256'),'hex'), $2, now(), $3, $4) RETURNING id;
+INSERT INTO seguridad.usuarios (nomb_usr, pwd_usr, debug, personas_id)
+VALUES($1, ENCODE(digest(LOWER($1::varchar),'sha256'),'hex'), $2, $3) RETURNING id;
 `;
 
 exports.insertPerfilesAsignados = `

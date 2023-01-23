@@ -63,8 +63,8 @@ SELECT v.id as ventas_id
 	, (fac.cae is not null OR fac.cai is not null) as aprobada
 	, fac.id as facturas_id
 	, tcm.descripcion as tipo_factura
-	, fac.punto_venta_factura
-	, fac.numero_factura
+    , pv.numero as punto_venta_factura
+    , fac.numero as numero_factura
 	, fac.fecha_emision as fecha_emision_factura
 	, fac.monto_total as monto_total_factura
 	, fac.monto_neto as monto_neto_factura
@@ -79,6 +79,7 @@ JOIN personas per ON cli.personas_id = per.id
 JOIN roma.empleados emp ON v.empleados_id = emp.id
 JOIN personas per2 ON emp.personas_id = per2.id
 LEFT JOIN roma.facturas fac ON v.id = fac.ventas_id
+LEFT JOIN roma.puntos_venta pv ON fac.puntos_venta_id = pv.id
 LEFT JOIN roma.tipos_comprobantes tcm ON fac.tipo_factura = tcm.id
 WHERE v.id = $1
 ORDER BY fecha desc, v.id;

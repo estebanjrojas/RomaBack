@@ -276,7 +276,6 @@ exports.insertUsuarioReturnId = function (req, res) {
     let debug = 0;
     const personas_id = (req.body.personas_id != undefined) ? req.body.personas_id : `null`;
     const nomb_usr = (req.body.nombre_usuario != undefined) ? req.body.nombre_usuario  : `null`;
-    const usuario = (req.body.usuario != undefined) ? req.body.usuario : `null`;
     const check_debug = (req.body.chk_debug != undefined) ? req.body.chk_debug : `null`;
 
     if (check_debug) {
@@ -285,7 +284,7 @@ exports.insertUsuarioReturnId = function (req, res) {
         debug = 0;
     }
 
-    querySrv.getQueryResults(qUsuarios.insertUsuarioReturnId, [nomb_usr, usuario, debug, personas_id])
+    querySrv.getQueryResults(qUsuarios.insertUsuarioReturnId, [nomb_usr, debug, personas_id])
     .then(response => res.send({ "mensaje": "El USUARIO fue guardado exitosamente", "id": response.value[0].id }))
     .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
 }
