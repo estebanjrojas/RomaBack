@@ -148,7 +148,6 @@ WHERE
     productos_id = $1
 `;
 
-
 exports.insertProductosReturningId = `
 INSERT INTO roma.productos (codigo, nombre, descripcion, descripcion_factura, tipo_producto, fecha_desde)
 VALUES($1, $2, $3, $4, $5, now()::date) RETURNING id; 
@@ -189,5 +188,6 @@ exports.eliminarImagenesProductos = `
 DELETE FROM roma.productos_imagenes WHERE productos_id = $1 RETURNING 1`;
 
 exports.eliminarProductoById = `
-DELETE FROM roma.productos WHERE id = $1 RETURNING 1`
-;
+DELETE FROM roma.productos WHERE id = $1 RETURNING 1`;
+
+exports.getTiposProductos = `SELECT * FROM roma.tipos_productos`;
