@@ -102,8 +102,5 @@ router
 router
   .route("/eliminarProductoById/:productos_id")
   .delete(middleware.checkToken, Ctrl.eliminarProductoById);
-router
-  .route("/insertEmpleadoPersonaDomicilio/")
-  .post(middleware.checkToken, Ctrl.insertEmpleadoPersonaDomicilio);
 
 module.exports = router;
