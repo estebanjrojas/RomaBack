@@ -5,6 +5,8 @@ const swaggerUi = require("swagger-ui-express"),
   swaggerDocument = require("./swagger.json");
 const override = require("method-override");
 const configuracion = require("./utillities/config");
+const multer = require('multer');
+const upload = multer(); // Middleware para manejar archivos
 
 const app = express();
 app.use(override());
@@ -14,6 +16,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json({ limit: "50mb" }));
 const router = express.Router();
 app.use(router);
+app.use(upload.single('csvFile')); // 'csvFile' es el nombre del campo que el frontend envía
+
 
 module.exports = app.listen(configuracion.puerto, function () {
   console.log("Servidor Corriendo en puerto " + configuracion.puerto);
@@ -38,6 +42,7 @@ const FacturasImpresion_routes = require("./routes/FacturasImpresionRoutes");
 const Menu_routes = require("./routes/MenuRoutes");
 const Facturas_routes = require("./routes/FacturasRoutes");
 const Sucursales_routes = require("./routes/SucursalesRoutes");
+const Predicciones_routes = require("./routes/PrediccionesRoutes");
 //app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use("", Usuarios_routes);
@@ -56,3 +61,4 @@ app.use("", FacturasImpresion_routes);
 app.use("", Menu_routes);
 app.use("", Facturas_routes);
 app.use("", Sucursales_routes);
+app.use("", Predicciones_routes);
