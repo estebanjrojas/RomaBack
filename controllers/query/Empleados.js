@@ -161,6 +161,12 @@ OFFSET (5* ((CASE
 LIMIT 5
 `;
 
+exports.getOficinas = `
+SELECT 
+    *
+FROM roma.oficinas;
+`;
+
 exports.insertEmpleadoReturnId = `
 INSERT INTO roma.empleados(personas_id, legajo, fecha_ingreso, descripcion, empresas_id, oficina)
 VALUES($1, $2, $3, $4, $5, $6) RETURNING id; `;
@@ -169,3 +175,10 @@ exports.updateEmpleado = `
 UPDATE roma.empleados
 SET personas_id = $1, legajo = $2, fecha_ingreso = $3, descripcion = $4, empresas_id = $5, oficina = $6
 WHERE id = $7`;
+
+
+//DELETE
+
+exports.deleteEmpleado = `
+UPDATE roma.empleados SET fecha_egreso = now() WHERE id = $1 RETURNING 1
+`;

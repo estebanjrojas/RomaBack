@@ -85,12 +85,17 @@ router
 router
   .route("/cargarImagenProducto/")
   .post(middleware.checkToken, Ctrl.cargarImagenProducto);
+router
+  .route("/insertProducto/")
+  .post(middleware.checkToken, Ctrl.insertProducto);
 
 //PUT
-router.route("/actualizarDatosProductos").put(Ctrl.actualizarDatosProductos);
 router
   .route("/actualizarFechaHastaPrecio")
   .put(Ctrl.actualizarFechaHastaPrecio);
+router
+  .route("/updateProducto")
+  .put(Ctrl.updateProducto);
 
 //DELETE
 router
@@ -102,5 +107,8 @@ router
 router
   .route("/eliminarProductoById/:productos_id")
   .delete(middleware.checkToken, Ctrl.eliminarProductoById);
+router
+  .route("/deleteProducto/:producto_id")
+  .delete(middleware.checkToken, Ctrl.deleteProducto);
 
 module.exports = router;

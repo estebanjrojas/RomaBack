@@ -1,31 +1,34 @@
 const qCategorias = require("./query/Categorias.js");
 const querySrv = require("../services/QueryService");
+var { Pool } = require("pg");
+const configuracion = require("../utillities/config");
+const connectionString = configuracion.bd;
 
 /* ---------------------------GET---------------------------- */
 
 exports.obtenerJSONTodasCategorias = function (req, res) {
     querySrv.getQueryResults(qCategorias.obtenerJSONTodasCategorias, [])
-    .then(response => res.send(response.value[0]))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send(response.value[0]))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.getCategoriasTodas = function (req, res) {
     querySrv.getQueryResults(qCategorias.getCategoriasTodas, [])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));  
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.getCategoriasBusqueda = function (req, res) {
     querySrv.getQueryResults(qCategorias.getCategoriasBusqueda, [req.params.texto_busqueda])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 //-----------> PAGINACION INICIO :
 exports.getCantidadPaginasCategorias = function (req, res) {
     querySrv.getQueryResults(qCategorias.getCantidadPaginasCategorias, [])
-    .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.getCantidadPaginasCategoriasTxt = function (req, res) {
@@ -60,20 +63,20 @@ exports.getCantidadPaginasCategoriasTxt = function (req, res) {
     FROM (
         SELECT 
             *, 
-            roma.get_nombre_categoria_padre(categorias_id_padre) as categorias_padre_descrip
+            roma.get_nombre_categoria_padre(id) as categorias_padre_descrip
         FROM roma.categorias
         ${parametrosBusqueda}
     )x `;
 
     querySrv.getQueryResults(query, [])
-    .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.getCategorias = function (req, res) {
     querySrv.getQueryResults(qCategorias.getCategorias, [req.params.paginaActual, req.params.cantidadPaginas])
-    .then(response => res.send(response.value))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send(response.value))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 exports.getCategoriasTxt = function (req, res) {
@@ -105,7 +108,7 @@ exports.getCategoriasTxt = function (req, res) {
     const query = ` 
     SELECT 
         *, 
-        roma.get_nombre_categoria_padre(categorias_id_padre) as categorias_padre_descrip
+        roma.get_nombre_categoria_padre(id) as categorias_padre_descrip
     FROM roma.categorias
     ${parametrosBusqueda}
     ORDER BY nombre
@@ -116,15 +119,15 @@ exports.getCategoriasTxt = function (req, res) {
     LIMIT 5 `;
 
     querySrv.getQueryResults(query, [])
-    .then(response => res.send(response.value))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send(response.value))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 //<------------------PAGINACION FIN
 
 exports.getDatosCategorias = function (req, res) {
     querySrv.getQueryResults(qCategorias.getDatosCategorias, [req.params.categorias_id])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));  
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 
@@ -138,8 +141,8 @@ exports.insert = function (req, res) {
     const categorias_id_padre = (req.body.categorias_padre_id != undefined) ? req.body.categorias_padre_id : `null`;
 
     querySrv.getQueryResults(qCategorias.insert, [nombre, descripcion, categorias_id_padre])
-    .then(response => res.send({ "mensaje": "La categoria se cargo exitosamente", "id": response.value[0] }))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido Error ${err}` })));
+        .then(response => res.send({ "mensaje": "La categoria se cargo exitosamente", "id": response.value[0] }))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido Error ${err}` })));
 }
 
 /* ---------------------------PUT---------------------------- */
@@ -151,6 +154,42 @@ exports.update = function (req, res) {
     const categorias_id_padre = (req.body.categorias_padre_id != undefined) ? req.body.categorias_padre_id : `null`;
 
     querySrv.getQueryResults(qCategorias.update, [id_categoria, nombre, descripcion, categorias_id_padre])
-    .then(response => res.send({ "mensaje": "La categoria se ha actualizado exitosamente", "id": response.value[0] }))
-    .catch(err => res.status(400).send(JSON.stringify({"mensaje": `Ha ocurrido un Error ${err}` })));
+        .then(response => res.send({ "mensaje": "La categoria se ha actualizado exitosamente", "id": response.value[0] }))
+        .catch(err => res.status(400).send(JSON.stringify({ "mensaje": `Ha ocurrido un Error ${err}` })));
 }
+
+/* ---------------------------DELETE---------------------------- */
+
+
+exports.deleteCategoria = function (req, res) {
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
+
+    (async () => {
+        const client = await pool.connect();
+        try {
+
+            await client.query("BEGIN");
+
+            const { eliminar_categoria } = await client.query(qCategorias.delete,
+                [
+                    req.params.categoria_id
+                ]);
+
+            await client.query("COMMIT");
+            res.status(200).send({
+                mensaje: "El Categoria fue eliminada exitosamente",
+                id: req.params.producto_id,
+            });
+        } catch (e) {
+            await client.query("ROLLBACK");
+            res
+                .status(400)
+                .send({ mensaje: "Ocurrio un error al eliminar la categoria" });
+            throw e;
+        } finally {
+            client.release();
+        }
+    })().catch((e) => console.error(e.stack));
+};

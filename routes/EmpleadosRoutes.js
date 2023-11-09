@@ -11,6 +11,7 @@ router.route('/getEmpleadosBusqueda/:texto_busqueda').get(middleware.checkToken,
 router.route('/getEmpleadoPorNroDoc/:tipo_doc/:nro_doc').get(middleware.checkToken, Ctrl.getEmpleadoPorNroDoc);
 router.route('/getEmpleadosSinUsuario/').get(middleware.checkToken, Ctrl.getEmpleadosSinUsuario);
 router.route('/getDatosEmpleadoPorId/:id').get(middleware.checkToken, Ctrl.getDatosEmpleadoPorId);
+router.route('/getOficinas/').get(middleware.checkToken, Ctrl.getOficinas);
 //------> Paginación Inicio
 router.route('/getCantidadPaginasEmpleados/:busca_nombre/:busca_documento/:busca_fechanac/:busca_oficina').get(middleware.checkToken, Ctrl.getCantidadPaginasEmpleados);
 router.route('/getCantidadPaginasEmpleados/:busca_nombre/:busca_documento/:busca_fechanac/:busca_oficina/:txt').get(middleware.checkToken, Ctrl.getCantidadPaginasEmpleadosTxt);
@@ -20,13 +21,14 @@ router.route('/getEmpleados/:paginaActual/:cantidadPaginas/:busca_nombre/:busca_
 
 //POST
 router.route('/insertEmpleadoReturnId/').post(middleware.checkToken, Ctrl.insertEmpleadoReturnId);
+router.route('/insertEmpleado/').post(middleware.checkToken, Ctrl.insertEmpleado);
 router.route('/guardarEmpleadoPersonaDomicilio/').post(middleware.checkToken, Ctrl.guardarEmpleadoPersonaDomicilio);
 
 //PUT
 
 
 //DELETE
-
+router.route('/deleteEmpleado/:empleado_id').delete(middleware.checkToken, Ctrl.deleteEmpleado);
 
 
 

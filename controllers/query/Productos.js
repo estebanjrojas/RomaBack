@@ -7,6 +7,7 @@ SELECT p.id as productos_id
 FROM roma.productos p
 JOIN roma.productos_categorias pc ON p.id = pc.productos_id
 JOIN roma.categorias cat ON pc.categorias_id = cat.id
+WHERE p.fecha_hasta IS null;
 `;
 
 exports.getProductosBusqueda = `
@@ -22,7 +23,11 @@ WHERE (p.codigo::varchar ilike '%'||$1||'%'
         OR p.nombre ilike '%'||$1||'%'
         OR descripcion ilike '%'||$1||'%'
         OR cat.nombre ilike '%'||$1||'%'
-        OR tipo_producto) ilike '%'||$1||'%');
+        OR tipo_producto) ilike '%'||$1||'%')
+        AND p.fecha_hasta IS null;
+`;
+
+exports.insertarNuevoProducto = `
 `;
 
 exports.getDatosProductos = `
@@ -148,6 +153,10 @@ WHERE
     productos_id = $1
 `;
 
+exports.getTiposProductos = `SELECT * FROM roma.tipos_productos`;
+
+//POST
+
 exports.insertProductosReturningId = `
 INSERT INTO roma.productos (codigo, nombre, descripcion, descripcion_factura, tipo_producto, fecha_desde)
 VALUES($1, $2, $3, $4, $5, now()::date) RETURNING id; 
@@ -157,6 +166,7 @@ exports.insertPreciosProductos = `
 INSERT INTO roma.precios_productos(monto, unidad, fecha_desde, productos_id)
 VALUES($1, $2, now(), $3)
 `;
+
 exports.insertNuevoPrecioProducto = `
 INSERT INTO roma.precios_productos(monto, fecha_desde, productos_id)
 VALUES($1, now()::date + INTERVAL '1 DAY', $2);
@@ -164,21 +174,61 @@ VALUES($1, now()::date + INTERVAL '1 DAY', $2);
 
 exports.insertCaracteristicasProducto = `
 INSERT INTO roma.productos_caracteristicas(nombre, descripcion, valor, productos_id)
-VALUES('$1', '$2', '$3', $4);
+VALUES($1, $2, $3, $4::bigint);
 `;
 
+
+exports.insertCategoriasProducto = `
+INSERT INTO roma.productos_categorias(productos_id, categorias_id)
+VALUES($1::bigint, $2);
+`;
+
+exports.insertImagenesProducto = `
+INSERT INTO roma.productos_imagenes(productos_id, imagen, fecha_carga, principal)
+VALUES($1, $2, now(), $3);
+`;
+
+
+//PUT
+exports.actualizarFechaHastaPrecio = `
+UPDATE roma.precios_productos SET fecha_hasta= now()::date WHERE productos_id = $1;`;
+
+
+exports.actualizarDatosProductos = `
+UPDATE roma.productos 
+SET 
+    codigo = $1,
+    nombre = $2,
+    descripcion = $3,
+    descripcion_factura = $4,
+    tipo_producto = $5,
+    fecha_desde = now()::date
+WHERE 
+    id=$6::bigint;
+`;
+
+exports.actualizarPreciosProductos = `
+UPDATE roma.precios_productos
+SET 
+    monto = $1,
+    unidad = $2,
+    fecha_desde = now()
+WHERE 
+    productos_id= $3::bigint;
+`;
+
+
+
+
+//DELETE
 exports.eliminarCategoriasProductos = `
 DELETE FROM roma.productos_categorias 
 WHERE productos_id = $1 
 `;
-
-exports.insertCategoriasProducto = `
-INSERT INTO roma.productos_categorias(productos_id, categorias_id)
-VALUES($1, $2);
+exports.eliminarPreciosProductos = `
+DELETE FROM roma.precios_productos
+WHERE productos_id = $1 
 `;
-
-exports.actualizarFechaHastaPrecio = `
-UPDATE roma.precios_productos SET fecha_hasta= now()::date WHERE productos_id = $1;`;
 
 exports.eliminarCaracteristicasProductos = `
 DELETE FROM roma.productos_caracteristicas WHERE productos_id = $1 RETURNING 1;
@@ -188,6 +238,6 @@ exports.eliminarImagenesProductos = `
 DELETE FROM roma.productos_imagenes WHERE productos_id = $1 RETURNING 1`;
 
 exports.eliminarProductoById = `
-DELETE FROM roma.productos WHERE id = $1 RETURNING 1`;
+UPDATE roma.productos SET fecha_hasta = now() WHERE id = $1 RETURNING 1`;
 
-exports.getTiposProductos = `SELECT * FROM roma.tipos_productos`;
+

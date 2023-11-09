@@ -23,7 +23,7 @@ SELECT
 FROM (
     SELECT 
         *, 
-        roma.get_nombre_categoria_padre(categorias_id_padre) as categorias_padre_descrip
+        roma.get_nombre_categoria_padre(id) as categorias_padre_descrip
     FROM roma.categorias
 )x
 `;
@@ -31,7 +31,7 @@ FROM (
 exports.getCategorias = `
 SELECT 
     *, 
-    roma.get_nombre_categoria_padre(categorias_id_padre) as categorias_padre_descrip
+    roma.get_nombre_categoria_padre(id) as categorias_padre_descrip
 FROM roma.categorias
 ORDER BY nombre
 OFFSET (5* ((CASE 
@@ -60,3 +60,11 @@ exports.update = `
 UPDATE roma.categorias SET nombre = $2, descripcion = $3, categorias_id_padre = $4
 WHERE id = $1 RETURNING id;
 `;
+
+exports.delete = `
+DELETE FROM roma.categorias
+WHERE 
+    id = $1 RETURNING 1;
+`;
+
+

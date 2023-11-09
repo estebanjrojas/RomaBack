@@ -25,7 +25,7 @@ router.route('/categorias/update/').put(middleware.checkToken, Ctrl.update);
 
 
 //DELETE
-
+router.route('/categorias/delete/:categoria_id').delete(middleware.checkToken, Ctrl.deleteCategoria);
 
 
 

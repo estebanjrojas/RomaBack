@@ -1,7 +1,11 @@
 const qEmpleados = require("./query/Empleados.js");
 const qDomicilios = require("./query/Domicilios.js");
 const qPersonas = require("./query/Personas.js");
+const qCiudades = require("./query/Ciudades.js");
 const querySrv = require("../services/QueryService");
+var { Pool } = require("pg");
+const configuracion = require("../utillities/config");
+const connectionString = configuracion.bd;
 
 /* ---------------------------GET---------------------------- */
 
@@ -65,6 +69,17 @@ exports.getEmpleadosSinUsuario = function (req, res) {
     );
 };
 
+exports.getOficinas = function (req, res) {
+  querySrv
+    .getQueryResults(qEmpleados.getOficinas, [])
+    .then((response) => res.send(JSON.stringify(response.value)))
+    .catch((err) =>
+      res
+        .status(400)
+        .send(JSON.stringify({ mensaje: `Ha ocurrido Error ${err}` }))
+    );
+};
+
 //-----------> PAGINACION INICIO :
 exports.getCantidadPaginasEmpleados = function (req, res) {
   querySrv
@@ -85,53 +100,53 @@ exports.getCantidadPaginasEmpleadosTxt = function (req, res) {
   const habilitarBusquedaOficina = parseInt(req.params.busca_oficina);
   if (
     habilitarBusquedaNombre +
-      habilitarBusquedaDocumento +
-      habilitarBusquedaFechaNac +
-      habilitarBusquedaOficina >
+    habilitarBusquedaDocumento +
+    habilitarBusquedaFechaNac +
+    habilitarBusquedaOficina >
     0
   ) {
     parametrosBusqueda = parametrosBusqueda + ` WHERE   `;
     if (habilitarBusquedaNombre == 1) {
       parametrosBusqueda =
         parametrosBusqueda +
-        `ps.apellido::varchar ||', '|| ps.nombre::varchar ilike '%${req.params.txt}%'`;
+        ` ps.apellido::varchar ||', '|| ps.nombre::varchar ilike '%${req.params.txt}%'`;
     }
     if (habilitarBusquedaDocumento == 1) {
       if (habilitarBusquedaNombre == 0) {
         parametrosBusqueda =
           parametrosBusqueda +
-          `ps.nro_doc::varchar ilike '%${req.params.txt}%'`;
+          ` ps.nro_doc::varchar ilike '%${req.params.txt}%'`;
       } else {
         parametrosBusqueda =
           parametrosBusqueda +
-          `OR ps.nro_doc::varchar ilike '%${req.params.txt}%'`;
+          ` OR ps.nro_doc::varchar ilike '%${req.params.txt}%'`;
       }
     }
     if (habilitarBusquedaFechaNac == 1) {
       if (habilitarBusquedaNombre + habilitarBusquedaDocumento == 0) {
         parametrosBusqueda =
           parametrosBusqueda +
-          `ps.fecha_nac::varchar ilike '%${req.params.txt}%'`;
+          ` ps.fecha_nac::varchar ilike '%${req.params.txt}%'`;
       } else {
         parametrosBusqueda =
           parametrosBusqueda +
-          `OR ps.fecha_nac::varchar ilike '%${req.params.txt}%'`;
+          ` OR ps.fecha_nac::varchar ilike '%${req.params.txt}%'`;
       }
     }
     if (habilitarBusquedaOficina == 1) {
       if (
         habilitarBusquedaNombre +
-          habilitarBusquedaDocumento +
-          habilitarBusquedaFechaNac ==
+        habilitarBusquedaDocumento +
+        habilitarBusquedaFechaNac ==
         0
       ) {
         parametrosBusqueda =
           parametrosBusqueda +
-          `tab.descrip::varchar ilike '%${req.params.txt}%'`;
+          ` of.descripcion::varchar ilike '%${req.params.txt}%'`;
       } else {
         parametrosBusqueda =
           parametrosBusqueda +
-          `OR tab.descrip::varchar ilike '%${req.params.txt}%'`;
+          ` OR of.descripcion::varchar ilike '%${req.params.txt}%'`;
       }
     }
   }
@@ -158,6 +173,9 @@ exports.getCantidadPaginasEmpleadosTxt = function (req, res) {
         JOIN roma.oficinas of ON em.oficina = of.id
         ${parametrosBusqueda}
     )x `;
+
+
+  console.log({ 'parametros': parametrosBusqueda });
 
   querySrv
     .getQueryResults(query, [])
@@ -191,9 +209,9 @@ exports.getEmpleadosTxt = function (req, res) {
   const habilitarBusquedaOficina = parseInt(req.params.busca_oficina);
   if (
     habilitarBusquedaNombre +
-      habilitarBusquedaDocumento +
-      habilitarBusquedaFechaNac +
-      habilitarBusquedaOficina >
+    habilitarBusquedaDocumento +
+    habilitarBusquedaFechaNac +
+    habilitarBusquedaOficina >
     0
   ) {
     parametrosBusqueda = parametrosBusqueda + ` WHERE   `;
@@ -227,17 +245,17 @@ exports.getEmpleadosTxt = function (req, res) {
     if (habilitarBusquedaOficina == 1) {
       if (
         habilitarBusquedaNombre +
-          habilitarBusquedaDocumento +
-          habilitarBusquedaFechaNac ==
+        habilitarBusquedaDocumento +
+        habilitarBusquedaFechaNac ==
         0
       ) {
         parametrosBusqueda =
           parametrosBusqueda +
-          `tab.descrip::varchar ilike '%${req.params.txt}%'`;
+          `of.descripcion::varchar ilike '%${req.params.txt}%'`;
       } else {
         parametrosBusqueda =
           parametrosBusqueda +
-          `OR tab.descrip::varchar ilike '%${req.params.txt}%'`;
+          `OR of.descripcion::varchar ilike '%${req.params.txt}%'`;
       }
     }
   }
@@ -536,4 +554,273 @@ exports.guardarEmpleadoPersonaDomicilio = function (req, res) {
         })
       )
     );
+};
+
+exports.insertEmpleado = function (req, res) {
+
+  var pool = new Pool({
+    connectionString: connectionString,
+  });
+
+  var body = req.body;
+
+  console.log({ 'body': body });
+
+  //Parametros para insertar el domicilio
+  let calle = body.formulario.calle != undefined ? body.formulario.calle : null;
+  let numero = body.formulario.numero != undefined ? body.formulario.numero : null;
+  let piso = body.formulario.piso != undefined ? body.formulario.piso : null;
+  let depto = body.formulario.depto != undefined ? body.formulario.depto : null;
+  let manzana = body.formulario.manzana != undefined ? body.formulario.manzana : null;
+  let lote = body.formulario.lote != undefined ? body.formulario.lote : null;
+  let block = body.formulario.block != undefined ? body.formulario.block : null;
+  let barrio = body.formulario.barrio != undefined ? body.formulario.barrio : null;
+  let ciudades_id =
+    body.formulario.ciudades_id != undefined ? body.formulario.ciudades_id : null;
+  let domicilios_id =
+    body.formulario.domicilios_id != undefined || body.formulario.domicilios_id != ""
+      ? body.formulario.domicilios_id
+      : null;
+
+  //Parametros para insertar la persona
+  let nro_doc = body.formulario.documento != undefined ? body.formulario.documento : null;
+  let tipo_doc = body.formulario.tipo_doc != undefined ? body.formulario.tipo_doc : null;
+  let apellido = body.formulario.apellido != undefined ? body.formulario.apellido : null;
+  let nombre = body.formulario.nombre != undefined ? body.formulario.nombre : null;
+  let telefono = body.formulario.telefono != undefined ? body.formulario.telefono : null;
+  let celular = body.formulario.celular != undefined ? body.formulario.celular : null;
+  let email = body.formulario.email != undefined ? body.formulario.email : null;
+  let fecha_nac = body.formulario.fecha_nac != undefined ? body.formulario.fecha_nac : null;
+  let genero = body.formulario.sexo != null ? body.formulario.sexo : "N";
+  let tipo_persona =
+    body.formulario.tipo_persona != undefined ? body.formulario.tipo_persona : `1`;
+  let ip = `'` + req.ip + `'`;
+  let usuario = body.formulario.usuario != undefined ? body.formulario.usuario : null;
+  let fecha_cese =
+    body.formulario.fecha_cese != undefined ? body.formulario.fecha_cese : null;
+  let usuario_carga =
+    body.formulario.usuario_carga != undefined ? body.formulario.usuario_carga : null;
+
+  let telefono_caracteristica =
+    body.formulario.telefono_caracteristica != undefined
+      ? body.formulario.telefono_caracteristica
+      : null;
+  let celular_caracteristica =
+    body.formulario.celular_caracteristica != undefined
+      ? body.formulario.celular_caracteristica
+      : null;
+  let personas_id =
+    body.formulario.personas_id != undefined || body.formulario.personas_id != ""
+      ? body.formulario.personas_id
+      : null;
+
+  //Parametros para insertar el empleado
+  let legajo = body.formulario.legajo != undefined ? body.formulario.legajo : null;
+  let fecha_ingreso =
+    body.formulario.fecha_ingreso != undefined
+      ? body.formulario.fecha_ingreso
+      : `now()::date`;
+  let descripcion =
+    body.formulario.descripcion != undefined ? body.formulario.descripcion : null;
+  let empresas_id =
+    body.formulario.empresas_id != undefined ? body.formulario.empresas_id : null;
+  let oficina = body.formulario.oficina != undefined ? body.formulario.oficina : null;
+  let empleados_id =
+    body.empleado_id != undefined || body.empleado_id != ""
+      ? body.empleado_id
+      : null;
+
+
+
+
+  (async () => {
+    const client = await pool.connect();
+    try {
+
+      await client.query("BEGIN");
+
+
+      const { rows } = await client.query(qCiudades.getCiudadesIdPorNombre, [body.formulario.ciudades]);
+      let queryDomicilio;
+      if (domicilios_id == undefined || domicilios_id == "null") {
+        queryDomicilio = {
+          name: "insert-domicilios",
+          text: qDomicilios.insertDomiciliosReturnIdFull,
+          values: [
+            calle,
+            numero,
+            piso,
+            depto,
+            manzana,
+            lote,
+            block,
+            barrio,
+            rows[0].id,
+          ],
+        };
+      } else {
+        queryDomicilio = {
+          name: "update-domicilios",
+          text: qDomicilios.updateDomicilio,
+          values: [
+            calle,
+            numero,
+            piso,
+            depto,
+            manzana,
+            lote,
+            block,
+            barrio,
+            rows[0].id,
+            domicilios_id,
+          ],
+        };
+      }
+
+      console.log({ '1': queryDomicilio.text, "values": queryDomicilio.values });
+      const { domicilios } = await client.query(queryDomicilio.text, queryDomicilio.values);
+
+      console.log({ 'domicilios': domicilios });
+      if (queryDomicilio.name == "insert-domicilio") {
+        domicilios_id = domicilios[0].id;
+      }
+
+      let queryPersona;
+      if (personas_id == undefined || personas_id == "null") {
+        queryPersona = {
+          name: "insert-personas",
+          text: qPersonas.insertReturingId,
+          values: [
+            nro_doc,
+            tipo_doc,
+            apellido,
+            nombre,
+            telefono,
+            celular,
+            email,
+            fecha_nac,
+            body.formulario.sexo,
+            tipo_persona,
+            fecha_carga,
+            domicilios_id,
+          ],
+        };
+      } else {
+        queryPersona = {
+          name: "update-personas",
+          text: qPersonas.updatePersonas,
+          values: [
+            nro_doc,
+            tipo_doc,
+            apellido,
+            nombre,
+            telefono,
+            celular,
+            email,
+            fecha_nac,
+            body.formulario.sexo,
+            domicilios_id,
+            personas_id,
+          ],
+        };
+      }
+      console.log({ '1': queryPersona.text, "values": queryPersona.values });
+      const { personas } = await client.query(queryPersona.text, queryPersona.values);
+
+      console.log({ '1': 2 });
+      console.log({ 'personas': personas });
+      if (personas_id == undefined || personas_id == "null") {
+        personas_id = personas[0].id;
+      }
+
+      let queryEmpleado;
+      if (empleados_id == undefined || empleados_id == "null") {
+        queryEmpleado = {
+          name: "insert-empleados",
+          text: qEmpleados.insertEmpleadoReturnId,
+          values: [
+            personas_id,
+            legajo,
+            fecha_ingreso,
+            descripcion,
+            empresas_id,
+            oficina,
+          ],
+        };
+      } else {
+        queryEmpleado = {
+          name: "update-empleados",
+          text: qEmpleados.updateEmpleado,
+          values: [
+            personas_id,
+            legajo,
+            fecha_ingreso,
+            descripcion,
+            empresas_id,
+            oficina,
+            empleados_id,
+          ],
+        };
+      }
+
+      const { empleados } = await client.query(queryEmpleado.text, queryEmpleado.values);
+
+      console.log({ '1': 3 });
+      console.log({ 'empleados': personas });
+
+
+      await client.query("COMMIT");
+      res.status(200).send({
+        mensaje: "El empleado se cargo exitosamente",
+        id: empleados,
+      });
+    } catch (e) {
+      await client.query("ROLLBACK");
+      res
+        .status(400)
+        .send({ mensaje: "Ocurrio un error..." });
+      throw e;
+    } finally {
+      client.release();
+    }
+  })().catch((e) => console.error(e.stack));
+};
+
+
+//DELETE
+
+
+exports.deleteEmpleado = function (req, res) {
+  var pool = new Pool({
+    connectionString: connectionString,
+  });
+
+  var body = req.body;
+
+  (async () => {
+    const client = await pool.connect();
+    try {
+
+      await client.query("BEGIN");
+
+      const { eliminar_empleado } = await client.query(qEmpleados.deleteEmpleado,
+        [
+          req.params.empleado_id
+        ]);
+
+      await client.query("COMMIT");
+      res.status(200).send({
+        mensaje: "El empleado fue eliminado exitosamente",
+        id: req.params.empleado_id,
+      });
+    } catch (e) {
+      await client.query("ROLLBACK");
+      res
+        .status(400)
+        .send({ mensaje: "Ocurrio un error al eliminar el empleado" });
+      throw e;
+    } finally {
+      client.release();
+    }
+  })().catch((e) => console.error(e.stack));
 };
