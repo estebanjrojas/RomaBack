@@ -29,6 +29,7 @@ router.route('/insertPerfilesAsignados/').post(middleware.checkToken, Ctrl.inser
 //PUT's
 router.route('/actualizarDatosUsuarios').put(Ctrl.actualizarDatosUsuarios);
 router.route('/cambiarPassword').put(Ctrl.cambiarPassword);
+router.route('/updatePerfiles').put(Ctrl.updatePerfiles);
 
 
 //DELETE's

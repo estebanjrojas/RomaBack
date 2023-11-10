@@ -4,6 +4,8 @@ let jwt = require('jsonwebtoken');
 const qUsuarios = require("./query/Usuarios.js");
 const poolSrv = require("../services/PoolService");
 const querySrv = require("../services/QueryService");
+var { Pool } = require("pg");
+const connectionString = configuracion.bd;
 
 async function generarTokenString(usuario, identificador) {
     try {
@@ -61,16 +63,16 @@ exports.solicitarAccesoUsuario = function (req, res) {
                         ).catch(function () {
                             res.status(400).send(JSON.stringify({ "error": "Error al generar el token" }));
                         })
-            
+
                     } else {
-                        res.send(JSON.stringify({ "error": "Usuario y/o contraseña incorrectos" }));  
+                        res.send(JSON.stringify({ "error": "Usuario y/o contraseña incorrectos" }));
                     }
-                    
+
                     if (err) {
                         res.status(400).send(JSON.stringify({ "mensaje": "Ocurrio un ERROR al validar el usuario" }));
                         return;
                     }
-                   
+
                 });
             }
         })
@@ -98,65 +100,65 @@ exports.validarPassVieja = async function (req, res) {
         })
     } catch (err) {
         res.status(400).send({ 'error': `${err}` });
-    }  
+    }
 }
 
 
 exports.cambiarPassword = function (req, res) {
     querySrv.getQueryResults(qUsuarios.cambiarPassword, [req.body.password, req.body.usuario])
-    .then(response => res.send({ "mensaje": "El password fue actualizado exitosamente", "id": response.value[0].id }))
-    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+        .then(response => res.send({ "mensaje": "El password fue actualizado exitosamente", "id": response.value[0].id }))
+        .catch(err => res.status(400).send({ "Ha ocurrido un error": err }));
 }
 
 exports.getDatosUsuario = function (req, res) {
     querySrv.getQueryResults(qUsuarios.getDatosUsuario, [req.params.usuario])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send({ "Ha ocurrido un error": err }));
 }
 
 exports.getUsuariosTodos = function (req, res) {
     querySrv.getQueryResults(qUsuarios.getUsuariosTodos, [])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send({ "Ha ocurrido un error": err }));
 }
 
 exports.getUsuariosBusqueda = function (req, res) {
     querySrv.getQueryResults(qUsuarios.getUsuariosBusqueda, [req.params.texto_busqueda])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send({ "Ha ocurrido un error": err }));
 }
 
 
 exports.getDatosUsuariosCargados = function (req, res) {
     querySrv.getQueryResults(qUsuarios.getDatosUsuariosCargados, [req.params.id])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send({ "Ha ocurrido un error": err }));
 }
 
 exports.getPerfilesAsignados = function (req, res) {
     querySrv.getQueryResults(qUsuarios.getPerfilesAsignados, [req.params.id])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send({ "Ha ocurrido un error": err }));
 }
 
 exports.getPerfilesSinAsignar = function (req, res) {
     querySrv.getQueryResults(qUsuarios.getPerfilesSinAsignar, [req.params.id])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
-   
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send({ "Ha ocurrido un error": err }));
+
 }
 
 exports.getPerfilesCodificadosUsuario = function (req, res) {
     querySrv.getQueryResults(qUsuarios.getPerfilesCodificadosUsuario, [req.params.usuario])
-    .then(response => res.send(JSON.stringify(response.value)))
-    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+        .then(response => res.send(JSON.stringify(response.value)))
+        .catch(err => res.status(400).send({ "Ha ocurrido un error": err }));
 }
 
 //-----------> PAGINACION INICIO :
 exports.getCantidadPaginasUsuarios = function (req, res) {
     querySrv.getQueryResults(qUsuarios.getCantidadPaginasUsuarios, [])
-    .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
-    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+        .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
+        .catch(err => res.status(400).send({ "Ha ocurrido un error": err }));
 }
 
 exports.getCantidadPaginasUsuariosTxt = function (req, res) {
@@ -199,14 +201,14 @@ exports.getCantidadPaginasUsuariosTxt = function (req, res) {
     )x `;
 
     querySrv.getQueryResults(query, [])
-    .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
-    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+        .then(response => res.send({ "regCantidadPaginas": response.value[0] }))
+        .catch(err => res.status(400).send({ "Ha ocurrido un error": err }));
 }
 
 exports.getUsuarios = function (req, res) {
     const query = ` 
     SELECT 
-        * 
+        *, usr.id as usuario_id 
     FROM seguridad.usuarios usr
     JOIN public.personas ps ON usr.personas_id = ps.id 
     ORDER BY ps.apellido, ps.nombre
@@ -217,8 +219,8 @@ exports.getUsuarios = function (req, res) {
     LIMIT 5 `;
 
     querySrv.getQueryResults(query, [])
-    .then(response => res.send(response.value))
-    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+        .then(response => res.send(response.value))
+        .catch(err => res.status(400).send({ "Ha ocurrido un error": err }));
 
 }
 
@@ -251,7 +253,7 @@ exports.getUsuariosTxt = function (req, res) {
     //Consulta
     const query = ` 
     SELECT 
-        * 
+        *, usr.id as usuario_id  
     FROM seguridad.usuarios usr
     JOIN public.personas ps ON usr.personas_id = ps.id 
     ${parametrosBusqueda}
@@ -263,8 +265,8 @@ exports.getUsuariosTxt = function (req, res) {
     LIMIT 5 `;
 
     querySrv.getQueryResults(query, [])
-    .then(response => res.send(response.value))
-    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+        .then(response => res.send(response.value))
+        .catch(err => res.status(400).send({ "Ha ocurrido un error": err }));
 }
 //<------------------PAGINACION FIN
 
@@ -275,7 +277,7 @@ exports.getUsuariosTxt = function (req, res) {
 exports.insertUsuarioReturnId = function (req, res) {
     let debug = 0;
     const personas_id = (req.body.personas_id != undefined) ? req.body.personas_id : `null`;
-    const nomb_usr = (req.body.nombre_usuario != undefined) ? req.body.nombre_usuario  : `null`;
+    const nomb_usr = (req.body.nombre_usuario != undefined) ? req.body.nombre_usuario : `null`;
     const check_debug = (req.body.chk_debug != undefined) ? req.body.chk_debug : `null`;
 
     if (check_debug) {
@@ -285,8 +287,8 @@ exports.insertUsuarioReturnId = function (req, res) {
     }
 
     querySrv.getQueryResults(qUsuarios.insertUsuarioReturnId, [nomb_usr, debug, personas_id])
-    .then(response => res.send({ "mensaje": "El USUARIO fue guardado exitosamente", "id": response.value[0].id }))
-    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+        .then(response => res.send({ "mensaje": "El USUARIO fue guardado exitosamente", "id": response.value[0].id }))
+        .catch(err => res.status(400).send({ "Ha ocurrido un error": err }));
 }
 
 
@@ -295,8 +297,8 @@ exports.insertPerfilesAsignados = function (req, res) {
     const perfiles_id = (req.body.perfiles_id != undefined) ? req.body.perfiles_id : `null`;
 
     querySrv.getQueryResults(qUsuarios.insertPerfilesAsignados, [usuarios_id, perfiles_id])
-    .then(response => res.send({ "mensaje": "El Perfil fue guardado exitosamente", "id": response.value[0].id }))
-    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+        .then(response => res.send({ "mensaje": "El Perfil fue guardado exitosamente", "id": response.value[0].id }))
+        .catch(err => res.status(400).send({ "Ha ocurrido un error": err }));
 }
 
 
@@ -304,13 +306,52 @@ exports.actualizarDatosUsuarios = function (req, res) {
     res.status(400).send("Este metodo no tiene consulta...");
 }
 
+
+exports.updatePerfiles = function (req, res) {
+    var pool = new Pool({
+        connectionString: connectionString,
+    });
+    var body = req.body;
+    (async () => {
+        const client = await pool.connect();
+        try {
+            await client.query("BEGIN");
+            const { deletePerfiles } = await client.query(qUsuarios.deletePerfilesDelUsuario,
+                [body.usuarioId]);
+
+            var insertPerfiles;
+            for (let i = 0; i < body.perfiles.length; i++) {
+                insertPerfiles = await client.query(qUsuarios.insertPerfilesAsignados,
+                    [
+                        body.usuarioId,
+                        body.perfiles[i].id
+                    ]);
+            }
+            await client.query("COMMIT");
+            res.status(200).send({
+                "mensaje": "El Perfil fue insertado exitosamente"
+            });
+        } catch (e) {
+            await client.query("ROLLBACK");
+            res
+                .status(400)
+                .send({ mensaje: "Ocurrio un error al actualizar los perfiles" });
+            throw e;
+        } finally {
+            client.release();
+        }
+    })().catch((e) => console.error(e.stack));
+};
+
+
+
 /*---------------------------DELETE----------------------------- */
 
 
 exports.deletePerfiles = function (req, res) {
     querySrv.getQueryResults(qUsuarios.deletePerfilesDelUsuario, [req.params.id_usuario])
-    .then(() => res.send({ "mensaje": "El Perfil fue eliminado exitosamente"}))
-    .catch(err => res.status(400).send({"Ha ocurrido un error": err}));
+        .then(() => res.send({ "mensaje": "El Perfil fue eliminado exitosamente" }))
+        .catch(err => res.status(400).send({ "Ha ocurrido un error": err }));
 }
 
 

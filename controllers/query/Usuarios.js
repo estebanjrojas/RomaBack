@@ -1,3 +1,5 @@
+//GET
+
 exports.generarTokenString = `
     SELECT seguridad.generar_token($1, $2) as token_acceso;
 `;
@@ -11,11 +13,7 @@ exports.solicitarAccesoUsuario = `
         AND coalesce(fecha_baja, now())>=now();
 `;
 
-exports.cambiarPassword = `
-UPDATE seguridad.usuarios
-        SET pwd_usr = ENCODE(digest(LOWER($1),'sha256'),'hex')
-WHERE nomb_usr = $2 RETURNING id;
-`;
+
 
 exports.getDatosUsuario = `
 SELECT usr.nomb_usr as usuario
@@ -53,15 +51,6 @@ WHERE (p.nombre::varchar ilike '%' || $1 || '%'
         OR p.nro_doc::varchar ilike '%' || $1 || '%')
 `;
 
-exports.insertUsuarioReturnId = `
-INSERT INTO seguridad.usuarios (nomb_usr, pwd_usr, debug, personas_id)
-VALUES($1, ENCODE(digest(LOWER($1::varchar),'sha256'),'hex'), $2, $3) RETURNING id;
-`;
-
-exports.insertPerfilesAsignados = `
-INSERT INTO seguridad.usuarios_perfiles(usuarios_id, perfiles_id)
-VALUES($1, $2)  RETURNING id;
-`;
 
 exports.getDatosUsuariosCargados = `
 SELECT em.id as empleados_id
@@ -82,7 +71,7 @@ JOIN roma.oficinas ofc ON em.oficina = ofc.id
 JOIN personas ps ON em.personas_id = ps.id
 JOIN roma.empresas ep ON em.empresas_id = ep.id
 JOIN seguridad.usuarios usr ON ps.id = usr.personas_id          
-WHERE em.id = $1;
+WHERE usr.id = $1;
 `;
 
 exports.getPerfilesAsignados = `
@@ -135,4 +124,26 @@ FROM seguridad.perfiles prf
 JOIN seguridad.usuarios_perfiles upf ON prf.id = upf.perfiles_id
 JOIN seguridad.usuarios usr ON upf.usuarios_id = usr.id
 WHERE usr.nomb_usr = $1
+`;
+
+
+//POST
+
+exports.insertUsuarioReturnId = `
+INSERT INTO seguridad.usuarios (nomb_usr, pwd_usr, debug, personas_id)
+VALUES($1, ENCODE(digest(LOWER($1::varchar),'sha256'),'hex'), $2, $3) RETURNING id;
+`;
+
+exports.insertPerfilesAsignados = `
+INSERT INTO seguridad.usuarios_perfiles(usuarios_id, perfiles_id)
+VALUES($1, $2)  RETURNING id;
+`;
+
+
+//PUT
+
+exports.cambiarPassword = `
+UPDATE seguridad.usuarios
+        SET pwd_usr = ENCODE(digest(LOWER($1),'sha256'),'hex')
+WHERE nomb_usr = $2 RETURNING id;
 `;
