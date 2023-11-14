@@ -62,6 +62,7 @@ FROM (
 	SELECT cli.id as clientes_id, cli.fecha_alta, p.id as personas_id, p.* 
 	FROM roma.clientes cli
 	JOIN personas p ON cli.personas_id = p.id
+	WHERE cli.fecha_baja is null
 )x
 `;
 
@@ -69,6 +70,7 @@ exports.getClientes = `
 SELECT cli.id as clientes_id, cli.fecha_alta, p.id as personas_id, p.* 
 FROM roma.clientes cli
 JOIN personas p ON cli.personas_id = p.id 
+WHERE cli.fecha_baja is null
 ORDER BY p.apellido, p.nombre
 OFFSET (20* ((CASE 
 	WHEN $1::integer > $2::integer THEN $2::integer
@@ -97,6 +99,14 @@ UPDATE roma.clientes
 SET personas_id=$1
 WHERE id = $2
 RETURNING id;
+`
+
+exports.deleteCliente = `
+UPDATE roma.clientes 
+SET fecha_baja = now() 
+WHERE 
+	id = $1 
+RETURNING 1;
 `
 
 

@@ -9,15 +9,15 @@ const executeQuery = (query, paramsArray, callback) => {
     try {
         const pool = poolSrv.getInstance().getPool();
         pool.connect((poolErr, client, release) => {
-            if (poolErr) { throw poolErr; } 
+            if (poolErr) { throw poolErr; }
             client.query(query, paramsArray, (queryErr, resp) => {
-                console.log({'resp': resp.rows});
+                console.log({ 'resp': resp });
                 release();
-                if (queryErr) {throw queryErr;}
+                if (queryErr) { throw queryErr; }
                 response = {
-                    status: resp.rowCount >0 ? 200: 400,
+                    status: resp.rowCount > 0 ? 200 : 400,
                     value: resp.rows,
-                    desc: resp.rowCount >0 ? `Exito` : `Sin resultados`
+                    desc: resp.rowCount > 0 ? `Exito` : `Sin resultados`
                 }
                 callback(response);
             });
@@ -28,19 +28,19 @@ const executeQuery = (query, paramsArray, callback) => {
 }
 
 function getQueryResults(query, paramsArray) {
-    console.log({'query': query, "params": paramsArray});
-    return new Promise( (resolve, reject) =>{
-        executeQuery(query, paramsArray, (queryResult)=> {
-            console.log({'queryResult': queryResult});
-            if(queryResult.status===200) {
+    console.log({ 'query': query, "params": paramsArray });
+    return new Promise((resolve, reject) => {
+        executeQuery(query, paramsArray, (queryResult) => {
+            console.log({ 'queryResult': queryResult });
+            if (queryResult.status === 200) {
                 resolve(queryResult);
             } else {
                 reject(queryResult.desc);
             }
         });
-        
+
 
     })
-  }
+}
 
 module.exports.getQueryResults = getQueryResults;

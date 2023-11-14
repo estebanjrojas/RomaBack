@@ -16,10 +16,11 @@ router.route('/getClientes/:paginaActual/:cantidadPaginas/:busca_nombre/:busca_a
 router.route('/insertClientePersonaDomicilio/').post(middleware.checkToken, Ctrl.insertClientePersonaDomicilio);
 router.route('/insertClientePersonaDomicilio/').post(middleware.checkToken, Ctrl.insertClientePersonaDomicilio);
 router.route('/guardarClientePersonaDomicilio/').post(middleware.checkToken, Ctrl.guardarClientePersonaDomicilio);
+router.route('/insertCliente/').post(middleware.checkToken, Ctrl.insertCliente);
 
 //PUT
 
 //DELETE
-
+router.route('/deleteCliente/:cliente_id').delete(middleware.checkToken, Ctrl.deleteCliente);
 
 module.exports = router;

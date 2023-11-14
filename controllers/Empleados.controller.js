@@ -171,7 +171,7 @@ exports.getCantidadPaginasEmpleadosTxt = function (req, res) {
         JOIN personas ps ON em.personas_id = ps.id
         JOIN roma.empresas ep ON em.empresas_id = ep.id
         JOIN roma.oficinas of ON em.oficina = of.id
-        ${parametrosBusqueda}
+        ${parametrosBusqueda} AND em.fecha_egreso is null
     )x `;
 
 
@@ -276,7 +276,7 @@ exports.getEmpleadosTxt = function (req, res) {
     JOIN personas ps ON em.personas_id = ps.id
     JOIN roma.empresas ep ON em.empresas_id = ep.id
     JOIN roma.oficinas of ON em.oficina = of.id
-    ${parametrosBusqueda}
+    ${parametrosBusqueda} AND em.fecha_egreso is null
     ORDER BY ps.apellido, ps.nombre
     OFFSET (5* ((CASE 
         WHEN ${req.params.paginaActual} > ${req.params.cantidadPaginas} THEN ${req.params.cantidadPaginas}

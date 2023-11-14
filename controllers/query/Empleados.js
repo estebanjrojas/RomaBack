@@ -134,6 +134,7 @@ FROM (
     JOIN roma.oficinas ofc ON em.oficina = ofc.id
     JOIN personas ps ON em.personas_id = ps.id
     JOIN roma.empresas ep ON em.empresas_id = ep.id
+    WHERE em.fecha_egreso is null
 )x
 `;
 
@@ -153,6 +154,7 @@ FROM roma.empleados em
 JOIN personas ps ON em.personas_id = ps.id
 JOIN roma.empresas ep ON em.empresas_id = ep.id
 JOIN roma.oficinas of ON em.oficina = of.id
+WHERE em.fecha_egreso is null
 ORDER BY ps.apellido, ps.nombre
 OFFSET (5* ((CASE 
     WHEN $1::integer > $1::integer THEN $2::integer

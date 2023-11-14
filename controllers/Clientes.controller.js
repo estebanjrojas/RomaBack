@@ -1,7 +1,11 @@
 const qPersonas = require("../controllers/query/Personas");
 const qDomicilios = require("../controllers/query/Domicilios");
 const qClientes = require("../controllers/query/Clientes");
+const qCiudades = require("../controllers/query/Ciudades");
 const querySrv = require("../services/QueryService");
+var { Pool } = require("pg");
+const configuracion = require("../utillities/config");
+const connectionString = configuracion.bd;
 
 //----------------------------------GET----------------------------------//
 
@@ -71,9 +75,9 @@ exports.getCantidadPaginasClientesTxt = function (req, res) {
 
   if (
     habilitarBusquedaNombre +
-      habilitarBusquedaApellido +
-      habilitarBusquedaDni +
-      habilitarBusquedaFechaNac >
+    habilitarBusquedaApellido +
+    habilitarBusquedaDni +
+    habilitarBusquedaFechaNac >
     0
   ) {
     parametrosBusqueda = parametrosBusqueda + ` WHERE `;
@@ -106,8 +110,8 @@ exports.getCantidadPaginasClientesTxt = function (req, res) {
     if (habilitarBusquedaFechaNac == 1) {
       if (
         habilitarBusquedaNombre +
-          habilitarBusquedaApellido +
-          habilitarBusquedaDni ==
+        habilitarBusquedaApellido +
+        habilitarBusquedaDni ==
         0
       ) {
         parametrosBusqueda =
@@ -129,7 +133,7 @@ exports.getCantidadPaginasClientesTxt = function (req, res) {
         SELECT cli.id AS clientes_id, cli.fecha_alta, p.id AS personas_id, p.* 
         FROM roma.clientes cli
         JOIN personas p ON cli.personas_id = p.id
-        ${parametrosBusqueda}
+        ${parametrosBusqueda} AND cli.fecha_baja is null
     )x `;
 
   querySrv
@@ -163,9 +167,9 @@ exports.getClientesTxt = function (req, res) {
 
   if (
     habilitarBusquedaNombre +
-      habilitarBusquedaApellido +
-      habilitarBusquedaDni +
-      habilitarBusquedaFechaNac >
+    habilitarBusquedaApellido +
+    habilitarBusquedaDni +
+    habilitarBusquedaFechaNac >
     0
   ) {
     parametrosBusqueda = parametrosBusqueda + ` WHERE `;
@@ -210,8 +214,8 @@ exports.getClientesTxt = function (req, res) {
     if (habilitarBusquedaFechaNac == 1) {
       if (
         habilitarBusquedaNombre +
-          habilitarBusquedaApellido +
-          habilitarBusquedaDni ==
+        habilitarBusquedaApellido +
+        habilitarBusquedaDni ==
         0
       ) {
         parametrosBusqueda =
@@ -232,7 +236,7 @@ exports.getClientesTxt = function (req, res) {
     SELECT cli.id as clientes_id, cli.fecha_alta, p.id as personas_id, p.* 
     FROM roma.clientes cli
     JOIN personas p ON cli.personas_id = p.id 
-    ${parametrosBusqueda}
+    ${parametrosBusqueda} AND cli.fecha_baja is null
     ORDER BY p.apellido, p.nombre
     OFFSET (5* ((CASE 
         WHEN ${req.params.paginaActual} > ${req.params.cantidadPaginas} THEN ${req.params.cantidadPaginas}
@@ -627,4 +631,249 @@ exports.guardarClientePersonaDomicilio = function (req, res) {
           })
         )
     );
+};
+
+
+
+exports.insertCliente = function (req, res) {
+
+  var pool = new Pool({
+    connectionString: connectionString,
+  });
+
+  var body = req.body;
+
+  console.log({ 'body': body });
+
+  //Parametros para insertar el domicilio
+  let clientes_id =
+    req.body.cliente_id != undefined || req.body.cliente_id != ""
+      ? req.body.cliente_id
+      : null;
+
+  //Parametros para insertar el domicilio
+  let calle = body.formulario.calle != undefined ? body.formulario.calle : null;
+  let numero = body.formulario.numero != undefined ? body.formulario.numero : null;
+  let piso = body.formulario.piso != undefined ? body.formulario.piso : null;
+  let depto = body.formulario.depto != undefined ? body.formulario.depto : null;
+  let manzana = body.formulario.manzana != undefined ? body.formulario.manzana : null;
+  let lote = body.formulario.lote != undefined ? body.formulario.lote : null;
+  let block = body.formulario.block != undefined ? body.formulario.block : null;
+  let barrio = body.formulario.barrio != undefined ? body.formulario.barrio : null;
+  let ciudades_id =
+    body.formulario.ciudades_id != undefined ? body.formulario.ciudades_id : null;
+  let domicilios_id =
+    body.formulario.domicilios_id != undefined || body.formulario.domicilios_id != ""
+      ? body.formulario.domicilios_id
+      : null;
+
+  //Parametros para insertar la persona
+  let nro_doc = body.formulario.documento != undefined ? body.formulario.documento : null;
+  let tipo_doc = body.formulario.tipo_doc != undefined ? body.formulario.tipo_doc : null;
+  let apellido = body.formulario.apellido != undefined ? body.formulario.apellido : null;
+  let nombre = body.formulario.nombre != undefined ? body.formulario.nombre : null;
+  let telefono = body.formulario.telefono != undefined ? body.formulario.telefono : null;
+  let celular = body.formulario.celular != undefined ? body.formulario.celular : null;
+  let email = body.formulario.email != undefined ? body.formulario.email : null;
+  let fecha_nac = body.formulario.fecha_nacimiento != undefined ? body.formulario.fecha_nacimiento : null;
+  let genero = body.formulario.sexo != null ? body.formulario.sexo : "N";
+  let tipo_persona =
+    body.formulario.tipo_persona != undefined ? body.formulario.tipo_persona : `1`;
+  let ip = `'` + req.ip + `'`;
+  let usuario = body.formulario.usuario != undefined ? body.formulario.usuario : null;
+  let fecha_cese =
+    body.formulario.fecha_cese != undefined ? body.formulario.fecha_cese : null;
+  let usuario_carga =
+    body.formulario.usuario_carga != undefined ? body.formulario.usuario_carga : null;
+
+  let telefono_caracteristica =
+    body.formulario.telefono_caracteristica != undefined
+      ? body.formulario.telefono_caracteristica
+      : null;
+  let celular_caracteristica =
+    body.formulario.celular_caracteristica != undefined
+      ? body.formulario.celular_caracteristica
+      : null;
+  let personas_id =
+    body.formulario.personas_id != undefined || body.formulario.personas_id != ""
+      ? body.formulario.personas_id
+      : null;
+
+  (async () => {
+    const client = await pool.connect();
+    try {
+
+      await client.query("BEGIN");
+
+
+      const { rows } = await client.query(qCiudades.getCiudadesIdPorNombre, [body.formulario.ciudades]);
+      let queryDomicilio;
+      if (domicilios_id == undefined || domicilios_id == "null") {
+        queryDomicilio = {
+          name: "insert-domicilios",
+          text: qDomicilios.insertDomiciliosReturnIdFull,
+          values: [
+            calle,
+            numero,
+            piso,
+            depto,
+            manzana,
+            lote,
+            block,
+            barrio,
+            rows[0].id,
+          ],
+        };
+      } else {
+        queryDomicilio = {
+          name: "update-domicilios",
+          text: qDomicilios.updateDomicilio,
+          values: [
+            calle,
+            numero,
+            piso,
+            depto,
+            manzana,
+            lote,
+            block,
+            barrio,
+            rows[0].id,
+            domicilios_id,
+          ],
+        };
+      }
+
+      console.log({ '1': queryDomicilio.text, "values": queryDomicilio.values });
+      const { domicilios } = await client.query(queryDomicilio.text, queryDomicilio.values);
+
+      console.log({ 'domicilios': domicilios });
+      if (queryDomicilio.name == "insert-domicilio") {
+        domicilios_id = domicilios[0].id;
+      }
+
+      let queryPersona;
+      if (personas_id == undefined || personas_id == "null") {
+        queryPersona = {
+          name: "insert-personas",
+          text: qPersonas.insertReturingId,
+          values: [
+            nro_doc,
+            tipo_doc,
+            apellido,
+            nombre,
+            telefono,
+            celular,
+            email,
+            fecha_nac,
+            body.formulario.sexo,
+            tipo_persona,
+            fecha_carga,
+            domicilios_id,
+          ],
+        };
+      } else {
+        queryPersona = {
+          name: "update-personas",
+          text: qPersonas.updatePersonas,
+          values: [
+            nro_doc,
+            tipo_doc,
+            apellido,
+            nombre,
+            telefono,
+            celular,
+            email,
+            fecha_nac,
+            body.formulario.sexo,
+            domicilios_id,
+            personas_id,
+          ],
+        };
+      }
+      console.log({ '1': queryPersona.text, "values": queryPersona.values });
+      const { personas } = await client.query(queryPersona.text, queryPersona.values);
+
+      console.log({ '1': 2 });
+      console.log({ 'personas': personas });
+      if (personas_id == undefined || personas_id == "null") {
+        personas_id = personas[0].id;
+      }
+
+      let queryCliente;
+      if (clientes_id == undefined || clientes_id == "null") {
+        queryCliente = {
+          name: "insert-clientes",
+          text: qClientes.insertClienteReturnId,
+          values: [personas_id],
+        };
+      } else {
+        queryCliente = {
+          name: "update-clientes",
+          text: qClientes.updateClientesDomicilios,
+          values: [personas_id, clientes_id],
+        };
+      }
+
+
+      const { clientes } = await client.query(queryCliente.text, queryCliente.values);
+
+      console.log({ '1': 3 });
+      console.log({ 'clientes': clientes });
+
+
+      await client.query("COMMIT");
+      res.status(200).send({
+        mensaje: "El Cliente se cargo exitosamente",
+        id: clientes,
+      });
+    } catch (e) {
+      await client.query("ROLLBACK");
+      res
+        .status(400)
+        .send({ mensaje: "Ocurrio un error..." });
+      throw e;
+    } finally {
+      client.release();
+    }
+  })().catch((e) => console.error(e.stack));
+};
+
+
+
+//DELETE
+
+
+exports.deleteCliente = function (req, res) {
+  var pool = new Pool({
+    connectionString: connectionString,
+  });
+
+  var body = req.body;
+
+  (async () => {
+    const client = await pool.connect();
+    try {
+
+      await client.query("BEGIN");
+
+      const { eliminar_cliente } = await client.query(qClientes.deleteCliente,
+        [
+          req.params.cliente_id
+        ]);
+
+      await client.query("COMMIT");
+      res.status(200).send({
+        mensaje: "El cliente fue eliminado exitosamente",
+        id: req.params.empleado_id,
+      });
+    } catch (e) {
+      await client.query("ROLLBACK");
+      res
+        .status(400)
+        .send({ mensaje: "Ocurrio un error al eliminar el cliente" });
+      throw e;
+    } finally {
+      client.release();
+    }
+  })().catch((e) => console.error(e.stack));
 };
