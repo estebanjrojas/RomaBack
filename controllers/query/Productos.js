@@ -92,7 +92,7 @@ AND CASE
 AND coalesce(prod.fecha_hasta, now())::date >= now()::date
 GROUP BY prod.id, prod.codigo, prod.nombre, prod.descripcion, prod.descripcion_factura
 , prod.tipo_producto, prod.fecha_desde, prod.fecha_hasta
-, ppre.monto, ppre.unidad
+, ppre.monto, ppre.unidad, tp.descripcion
 `;
 
 exports.getFotosCargadas = `
